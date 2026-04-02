@@ -1,50 +1,41 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 
 export default function Navbar() {
-    const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
 
-    return (
-        <nav className="bg-slate-900 text-white px-6 py-4 shadow-lg border-b border-white/10">
-            <div className="max-w-6xl mx-auto flex justify-between items-center">
+  return (
+    <nav className="bg-[#0f172a] text-white shadow-md">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        
+        {/* LOGO */}
+        <h1 className="text-xl font-bold">AI Test</h1>
 
-                {/* LOGO */}
-                <h1  onClick={()=>navigate("/")} className="text-2xl font-bold tracking-wide cursor-pointer">
-                    Edu<span className="text-blue-400">AI</span>
-                </h1>
+        {/* DESKTOP MENU */}
+        <div className="hidden md:flex gap-6 items-center">
+          <Link to="/" className="hover:text-purple-400">Home</Link>
+          <Link to="/generate" className="hover:text-purple-400">Generate</Link>
+          <Link to="/dashboard" className="hover:text-purple-400">Dashboard</Link>
+        </div>
 
-                {/* LINKS */}
-                <div className="flex items-center gap-6 text-sm">
+        {/* MOBILE ICON */}
+        <button
+          className="md:hidden"
+          onClick={() => setOpen(!open)}
+        >
+          {open ? <X size={26} /> : <Menu size={26} />}
+        </button>
+      </div>
 
-                    <Link
-                        to="/"
-                        className="hover:text-purple-400 transition"
-                    >
-                        Home
-                    </Link>
-
-                    <Link
-                        to="/dashboard"
-                        className="hover:text-purple-400 transition"
-                    >
-                        Dashboard
-                    </Link>
-
-                    <Link
-                        to="/results"
-                        className="hover:text-purple-400 transition"
-                    >
-                        Results
-                    </Link>
-
-                    <button
-                        onClick={() => navigate("/generate-test")}
-                        className="bg-purple-600 px-4 py-1 rounded-lg cursor-pointer hover:bg-purple-500 transition"
-                    >
-                        Take Test
-                    </button>
-
-                </div>
-            </div>
-        </nav>
-    );
+      {/* MOBILE MENU */}
+      {open && (
+        <div className="md:hidden px-4 pb-4 flex flex-col gap-4 bg-[#1e293b]">
+          <Link to="/" onClick={() => setOpen(false)}>Home</Link>
+          <Link to="/generate" onClick={() => setOpen(false)}>Generate</Link>
+          <Link to="/dashboard" onClick={() => setOpen(false)}>Dashboard</Link>
+        </div>
+      )}
+    </nav>
+  );
 }
