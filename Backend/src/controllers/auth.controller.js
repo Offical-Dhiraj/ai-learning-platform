@@ -32,7 +32,7 @@ const register = async (req, res, next) => {
   try {
     const { username, email, password, targetExam } = req.body;
 
-    if (!username || !email || !password) {
+    if (!username || !email || !password || !targetExam) {
       return res.status(400).json({
         success: false,
         message: "All fields are required",
