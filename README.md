@@ -44,12 +44,94 @@ ai-learning-platform/
 │
 ├── Backend/
 │ ├── src/
+│ │ ├── config/
+│ │ │ └── db.js
+│ │ │
+│ │ ├── controllers/
+│ │ │ ├── auth.controller.js
+│ │ │ ├── progress.controller.js
+│ │ │ ├── result.controller.js
+│ │ │ ├── study-plan.controller.js
+│ │ │ └── test.controller.js
+│ │ │
+│ │ ├── middlewares/
+│ │ │ ├── auth.middleware.js
+│ │ │ ├── error.middleware.js
+│ │ │ ├── notFound.middleware.js
+│ │ │ └── rateLimiter.middleware.js
+│ │ │
+│ │ ├── models/
+│ │ │ ├── user.model.js
+│ │ │ ├── result.model.js
+│ │ │ ├── progress.model.js
+│ │ │ ├── studyPlan.model.js
+│ │ │ └── resource.model.js
+│ │ │
+│ │ ├── routes/
+│ │ │ ├── index.js
+│ │ │ ├── auth.routes.js
+│ │ │ ├── progress.routes.js
+│ │ │ ├── result.routes.js
+│ │ │ ├── studyPlan.routes.js
+│ │ │ └── test.routes.js
+│ │ │
+│ │ ├── services/
+│ │ │ ├── ai.service.js
+│ │ │ ├── progress.service.js
+│ │ │ ├── result.service.js
+│ │ │ ├── scoring.service.js
+│ │ │ └── studyPlan.service.js
+│ │ │
+│ │ └── app.js
+│ │
 │ ├── server.js
-│ └── package.json
+│ ├── package.json
+│ └── .env
 │
 ├── Frontend/
+│ ├── public/
+│ │
 │ ├── src/
-│ └── package.json
+│ │ ├── app/
+│ │ │ ├── App.jsx
+│ │ │ └── routes.jsx
+│ │ │
+│ │ ├── components/
+│ │ │ └── Navbar.jsx
+│ │ │
+│ │ ├── features/
+│ │ │ ├── auth/
+│ │ │ │ └── auth.api.js
+│ │ │ └── test/
+│ │ │ └── test.api.js
+│ │ │
+│ │ ├── pages/
+│ │ │ ├── auth/
+│ │ │ │ ├── Login.jsx
+│ │ │ │ └── Register.jsx
+│ │ │ │
+│ │ │ ├── dashboard/
+│ │ │ │ └── Dashboard.jsx
+│ │ │ │
+│ │ │ └── test/
+│ │ │ ├── GenerateTest.jsx
+│ │ │ ├── Test.jsx
+│ │ │ ├── Result.jsx
+│ │ │ └── Home.jsx
+│ │ │
+│ │ ├── services/
+│ │ │ └── api.js
+│ │ │
+│ │ ├── store/
+│ │ │ └── testStore.js
+│ │ │
+│ │ ├── assets/
+│ │ ├── main.jsx
+│ │ └── index.css
+│ │
+│ ├── index.html
+│ ├── package.json
+│ └── vite.config.js
 
 
 ---
