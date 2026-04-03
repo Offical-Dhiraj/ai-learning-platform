@@ -5,7 +5,7 @@ An intelligent AI-powered learning platform that helps users improve through **p
 ---
 
 ## 🌐 Live Demo
-🔗 Frontend: https://your-vercel-link.vercel.app  
+🔗 Frontend:[ https://your-vercel-link.vercel.app  ](https://ai-learning-platform-git-main-dhiraj-kumars-projects-e9bc6d24.vercel.app)
 🔗 Backend API: https://your-render-link.onrender.com  
 
 ---
