@@ -8,16 +8,19 @@ export default function Navbar() {
   return (
     <nav className="bg-[#0f172a] text-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-        
+
         {/* LOGO */}
         <h1 className="text-xl font-bold">AI Test</h1>
 
         {/* DESKTOP MENU */}
         <div className="hidden md:flex gap-6 items-center">
           <Link to="/" className="hover:text-purple-400">Home</Link>
-          <Link to="/generate" className="hover:text-purple-400">Generate</Link>
+          <Link to="/generate-test" className="hover:text-purple-400">Generate</Link>
           <Link to="/dashboard" className="hover:text-purple-400">Dashboard</Link>
+          <Link to="/study-plan" className="hover:text-purple-400">Study Plan</Link>
         </div>
+
+
 
         {/* MOBILE ICON */}
         <button
@@ -32,8 +35,9 @@ export default function Navbar() {
       {open && (
         <div className="md:hidden px-4 pb-4 flex flex-col gap-4 bg-[#1e293b]">
           <Link to="/" onClick={() => setOpen(false)}>Home</Link>
-          <Link to="/generate" onClick={() => setOpen(false)}>Generate</Link>
+          <Link to="/generate-test" onClick={() => setOpen(false)}>Generate</Link>
           <Link to="/dashboard" onClick={() => setOpen(false)}>Dashboard</Link>
+          <Link to="/study-plan" onClick={() => setOpen(false)}> Study Plan</Link>
         </div>
       )}
     </nav>

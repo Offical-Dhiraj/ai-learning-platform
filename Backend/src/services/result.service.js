@@ -1,4 +1,3 @@
-// src/services/result.service.js
 
 const Result = require("../models/result.model");
 

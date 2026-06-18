@@ -1,7 +1,7 @@
 import { useTestStore } from "@/store/testStore";
 import { useNavigate } from "react-router-dom";
 import { saveResultAPI } from "@/features/auth/auth.api";
-import Navbar from "@/components/Navbar"; // ✅ your navbar
+import Navbar from "@/components/Navbar"; 
 
 export default function Test() {
   const navigate = useNavigate();
@@ -35,7 +35,6 @@ export default function Test() {
         correctAnswer: q.correctAnswer,
         selectedAnswer: answers[index] || null,
       }));
-
       const res = await saveResultAPI({
         exam: "placement",
         difficulty: "easy",

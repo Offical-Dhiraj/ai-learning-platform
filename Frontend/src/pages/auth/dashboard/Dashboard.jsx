@@ -4,6 +4,7 @@ import { getDashboardAPI, getProfile } from "../../../features/auth/auth.api";
 import { useLocation } from "react-router-dom";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 
+
 export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
@@ -47,7 +48,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-[#0b1120] text-white">
+    <div className="flex min-h-screen  bg-[#0b1120] text-white">
 
       {/* ✅ MOBILE OVERLAY */}
       {menuOpen && (
@@ -70,7 +71,8 @@ export default function Dashboard() {
           <button onClick={() => navigate("/dashboard")}> Dashboard</button>
           <button onClick={() => navigate("/generate-test")}> Generate Test</button>
           <button onClick={() => navigate("/results")}> Results</button>
-          <button>Study Plan</button>
+          <button onClick={() => navigate("/study-plan")}> Study-plan</button>
+          {/* <button onClick={()=>  navigate("/study-plan")}>Study Plan</button> */}
         </nav>
 
         <button
@@ -118,7 +120,7 @@ export default function Dashboard() {
             >
               📊 <span>Results</span>
             </button>
-            <button
+            <button onClick={() => navigate("/study-plan")}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg transition ${location.pathname === "/study-plan"
                 ? "bg-purple-500 text-white"
                 : "hover:bg-white/10"
@@ -228,12 +230,12 @@ export default function Dashboard() {
             <p className="text-gray-400">No activity yet</p>
           )}
         </div>
-
+           
       </div>
 
-
+         
     </div>
-
+    
   );
-  
+
 }

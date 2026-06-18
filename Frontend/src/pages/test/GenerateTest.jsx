@@ -33,7 +33,7 @@ export default function GenerateTest() {
 
             startTest(res.data.questions); // store in Zustand
 
-            navigate("/test"); // 🔥 IMPORTANT
+            navigate("/test"); 
 
         } catch (err) {
             console.log(err);

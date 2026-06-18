@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
-// 🔐 Generate JWT
+//  Generate JWT
 const generateToken = (user) => {
   return jwt.sign(
     { id: user._id },
@@ -12,7 +12,7 @@ const generateToken = (user) => {
   );
 };
 
-// 🔐 Send token securely (HTTP only cookie)
+//  Send token securely (HTTP only cookie)
 const sendToken = (res, user) => {
   const token = generateToken(user);
 
@@ -186,7 +186,6 @@ const forgotPassword = async (req, res, next) => {
 
     await user.save();
 
-    // ❌ token expose nahi karna production me
     res.json({
       success: true,
       message: "Password reset link sent"

@@ -1,75 +1,82 @@
-import { useNavigate } from "react-router-dom";
-import heroImg from "../assets/Heroimag.avif";
+import { useEffect, useState } from "react";
 
+import Navbar from "./home/Navbar";
+import GuestHero from "./home/GuestHero";
+import LoggedInHero from "./home/LoggedInHero";
 
+import Features from "./home/Features";
+import HowItWorks from "./home/HowItWorks";
+import Statistics from "./home/Statistics";
+import Testimonials from "./home/Testimonials";
+import Footer from "./home/Footer";
+
+import {
+  getProfile,
+  getDashboardAPI
+} from "@/features/auth/auth.api";
 
 export default function Home() {
-    const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
-    return (
-        <div
-            className="min-h-screen bg-cover bg-center flex flex-col"
-            style={{
-                backgroundImage: `url(${heroImg})`,
-            }}
-        >
-            {/* Overlay */}
-            <div className="min-h-screen bg-linear-to-br from-black/80 via-black/60 to-black/80 flex flex-col">
+  const [user, setUser] = useState(null);
 
-                {/* Navbar */}
-                <div className="flex justify-between items-center px-8 py-4 text-white">
-                    <h1 onChange={"/login"} className="text-2xl font-bold tracking-wide">
-                        Edu<span className="text-blue-400">AI</span>
-                    </h1>
+  const [stats, setStats] = useState({
+    totalTest: 0,
+    accuracy: 0,
+    avgScore: 0
+  });
 
-                    <button
-                        onClick={() => navigate("/login")}
-                        className="border border-white/40 px-5 py-2 cursor-pointer bg-blue-400 hover:bg-blue-400 rounded-lg  transition"
-                    >
-                        Login
-                    </button>
-                </div>
+  useEffect(() => {
+    if (!token) return;
 
-                {/* Center Content */}
-                <div className="flex flex-1 items-center justify-center text-center px-6">
-                    <div className="max-w-3xl space-y-6">
+    const fetchData = async () => {
+      try {
+        const profileRes = await getProfile();
+        setUser(profileRes.data.user);
 
-                        {/* Heading */}
-                        <h1 className="text-5xl md:text-6xl font-extrabold text-white leading-tight">
-                            Transform Your Learning with <span className="text-blue-400">AI</span> 🚀
-                        </h1>
+        const dashboardRes =
+          await getDashboardAPI();
 
-                        {/* Subtext */}
-                        <p className=" text-white text-lg leading-relaxed">
-                            Experience a smarter way to study. Generate intelligent tests, analyze your performance,
-                            and follow a personalized learning path designed just for you.
+        setStats(
+          dashboardRes.data.stats || {}
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    };
 
-                            Whether you're preparing for competitive exams, improving your coding skills,
-                            or mastering new subjects — EduAI helps you stay ahead with data-driven insights
-                            and adaptive learning powered by artificial intelligence.
-                        </p>
+    fetchData();
+  }, [token]);
 
-                        {/* Features Highlight */}
-                        <div className="flex flex-wrap justify-center gap-4 pt-4 text-sm text-gray-300">
-                            <span className="bg-white/10 px-4 py-2 rounded-full">🧠 AI Test Generation</span>
-                            <span className="bg-white/10 px-4 py-2 rounded-full">📊 Performance Tracking</span>
-                            <span className="bg-white/10 px-4 py-2 rounded-full">🎯 Smart Study Plans</span>
-                        </div>
+  return (
+    <div className="bg-slate-950 text-white">
 
-                        {/* CTA */}
-                        <div className="pt-6">
-                            <button
-                                onClick={() => navigate("/register")}
-                                className="bg-blue-400 px-8 py-3 rounded-xl cursor-pointer text-white font-semibold shadow-lg hover:scale-105 hover:bg-blue-400 transition"
-                            >
-                                Get Started
-                            </button>
-                        </div>
+      <Navbar />
 
-                    </div>
-                </div>
+{token ? (
+  <>
+    <LoggedInHero
+      user={user}
+      stats={stats}
+    />
 
-            </div>
-        </div>
-    );
+    <Footer />
+  </>
+) : (
+  <>
+    <GuestHero />
+
+    <Features />
+
+    <HowItWorks />
+
+    <Statistics />
+
+    <Testimonials />
+
+    <Footer />
+  </>
+)}
+    </div>
+  );
 }

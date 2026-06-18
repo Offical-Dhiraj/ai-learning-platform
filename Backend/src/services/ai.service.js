@@ -181,12 +181,135 @@ const generateQuestions = async (exam, difficulty, totalQuestions) => {
   }
 };
 
+// const generateQuestions = async (exam, difficulty, totalQuestions) => {
+//   try {
+//     const chunkSize = 5;
+//     const allQuestions = [];
+
+//     for (let i = 0; i < totalQuestions; i += chunkSize) {
+//       const currentChunk = Math.min(
+//         chunkSize,
+//         totalQuestions - i
+//       );
+
+//       const prompt =
+//         buildPrompt(exam, difficulty, currentChunk) +
+//         `\nUNIQUE_REQUEST_ID:${Date.now()}-${Math.random()}`;
+
+//       try {
+//         const response =
+//           await client.chat.completions.create({
+//             model: "llama-3.3-70b-versatile",
+//             temperature: 0.8,
+//             max_tokens: 3000,
+//             messages: [
+//               {
+//                 role: "system",
+//                 content:
+//                   "You are an expert exam question generator. Return ONLY valid JSON."
+//               },
+//               {
+//                 role: "user",
+//                 content: prompt
+//               }
+//             ]
+//           });
+
+//         const text =
+//           response?.choices?.[0]?.message?.content;
+
+//         console.log(
+//           "AI RAW RESPONSE:",
+//           text?.substring(0, 300)
+//         );
+
+//         const parsed = cleanJSON(text);
+
+//         if (
+//           parsed &&
+//           parsed.questions &&
+//           Array.isArray(parsed.questions)
+//         ) {
+//           allQuestions.push(...parsed.questions);
+//         } else {
+//           console.log(
+//             "⚠️ Invalid AI response, adding fallback questions"
+//           );
+
+//           allQuestions.push(
+//             ...getFallbackQuestions(currentChunk)
+//           );
+//         }
+
+//       } catch (err) {
+//         console.log(
+//           "Chunk Generation Error:",
+//           err.message
+//         );
+
+//         allQuestions.push(
+//           ...getFallbackQuestions(currentChunk)
+//         );
+//       }
+//     }
+
+//     // Remove duplicates
+//     const seen = new Set();
+
+//     const uniqueQuestions = [];
+
+//     for (const q of allQuestions) {
+//       if (
+//         !q ||
+//         !q.questionText ||
+//         !Array.isArray(q.options) ||
+//         !q.correctAnswer
+//       ) {
+//         continue;
+//       }
+
+//       const normalized =
+//         q.questionText.trim().toLowerCase();
+
+//       if (!seen.has(normalized)) {
+//         seen.add(normalized);
+
+//         uniqueQuestions.push({
+//           questionText: q.questionText,
+//           topic: q.topic || "General",
+//           options: q.options,
+//           correctAnswer: q.correctAnswer
+//         });
+//       }
+//     }
+
+//     // Fill remaining questions
+//     if (uniqueQuestions.length < totalQuestions) {
+//       const remaining =
+//         totalQuestions - uniqueQuestions.length;
+
+//       uniqueQuestions.push(
+//         ...getFallbackQuestions(remaining)
+//       );
+//     }
+
+//     return uniqueQuestions.slice(0, totalQuestions);
+
+//   } catch (error) {
+//     console.log(
+//       "FINAL QUESTION ERROR:",
+//       error.message
+//     );
+
+//     return getFallbackQuestions(totalQuestions);
+//   }
+// };
 
 const generateStudySuggestions = async (weakTopics) => {
   try {
     // ✅ 1. Handle empty weak topics (no change, just improved message)
     if (!weakTopics || weakTopics.length === 0) {
-      return "🎉 Great job! No weak topics found.\n• Keep practicing\n• Try higher difficulty questions";
+      return "Great job! No weak topics found.\n• Keep practicing\n• Try higher difficulty questions";
     }
 
     const topics = weakTopics.map(t => t.topic).join(", ");
@@ -206,6 +329,8 @@ Rules:
 
     const response = await client.chat.completions.create({
       model: "openai/gpt-oss-safeguard-20b",
+      // model: "llama-3.3-70b-versatile",
+
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7
     });
@@ -234,7 +359,87 @@ Rules:
     return "• Revise basics\n• Practice daily\n• Focus on weak topics";
   }
 };
+
+
+const generateAIStudyPlan = async (
+  weakTopics,
+  duration
+) => {
+  try {
+
+
+    const topics = weakTopics
+      .map(t => t.topic)
+      .join(", ");
+
+    const prompt = `
+      
+
+You are an expert AI tutor.
+
+Generate a ${duration} day study plan.
+
+Weak Topics:
+${topics}
+
+Return ONLY JSON.
+
+{
+"dailyTasks":[
+{
+"day":1,
+"topic":"Percentage",
+"task":"Solve 20 Percentage Questions",
+"estimatedTime":"1 Hour"
+}
+],
+
+"monthlyPlan":[
+{
+"week":1,
+"goal":"Master Percentage"
+}
+]
+}
+`;
+
+
+    const response =
+      await client.chat.completions.create({
+        model: "openai/gpt-oss-safeguard-20b",
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.7
+      });
+
+    const text =
+      response?.choices?.[0]?.message?.content;
+
+    const parsed = cleanJSON(text);
+
+    return parsed;
+
+
+  } catch (error) {
+
+
+    console.log(
+      "AI Study Plan Error:",
+      error.message
+    );
+
+    return null;
+
+
+  }
+};
+
 module.exports = {
   generateQuestions,
-  generateStudySuggestions
+  generateStudySuggestions,
+  generateAIStudyPlan
 };

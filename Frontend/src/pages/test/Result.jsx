@@ -100,6 +100,44 @@ export default function Results() {
           </div>
         </div>
 
+
+
+        <div className="mt-6">
+          <h2 className="text-xl font-bold mb-3">
+            Learning Resources
+          </h2>
+
+          {latest.resources?.map((r, i) => (
+            <div
+              key={i}
+              className="bg-white/10 p-4 rounded-lg mb-3"
+            >
+              <h3 className="font-bold">
+                {r.topic}
+              </h3>
+
+              <a
+                href={r.youtube}
+                target="_blank"
+                className="text-blue-400 block"
+              >
+                📺 YouTube Tutorial
+              </a>
+
+              <a
+                href={r.article}
+                target="_blank"
+                className="text-green-400 block"
+              >
+                📘 Study Notes
+              </a>
+            </div>
+          ))}
+        </div>
+
+
+
+
         {/* QUESTIONS REVIEW */}
         <div className="space-y-4">
           <h2 className="text-xl mb-2 font-bold">Question Review</h2>
@@ -107,11 +145,10 @@ export default function Results() {
           {latest.questions?.map((q, index) => (
             <div
               key={index}
-              className={`p-4 rounded-xl border ${
-                q.isCorrect
+              className={`p-4 rounded-xl border ${q.isCorrect
                   ? "border-green-400 bg-green-500/10"
                   : "border-red-400 bg-red-500/10"
-              }`}
+                }`}
             >
               <p className="font-semibold mb-2">
                 {index + 1}. {q.questionText}

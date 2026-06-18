@@ -1,17 +1,18 @@
-import API
-    from "../../services/api";
+import API from "../../services/api";
 
 export const registerUser = (data) =>
-    API.post("/auth/register", data);
+  API.post("/auth/register", data);
 
 export const loginUser = (data) =>
-    API.post("/auth/login", data);
+  API.post("/auth/login", data);
 
-export const getProfile =()=>
-    API.get("/auth/me")
+export const getProfile = () =>
+  API.get("/auth/me")
 
 export const generateTestAPI = (data) =>
-    API.post("/test/generate", data);
+  API.post("/test/generate", data);
+
+
 
 export const saveResultAPI = (data) =>
   API.post("/results/submit", data);
@@ -19,8 +20,20 @@ export const saveResultAPI = (data) =>
 export const getResultsAPI = () =>
   API.get("/results");
 
-export const getDashboardAPI=()=>
-    API.get("/results/dashboard");
+export const getDashboardAPI = () =>
+  API.get("/results/dashboard");
+
+export const generateStudyPlanAPI = (data) =>
+  API.post("/studyplan/generate", data);
+
+export const getStudyPlanAPI = () =>
+  API.get("/studyplan");
+
+export const markDayCompletedAPI = (day) =>
+  API.patch("/studyplan/complete-day", {
+    day
+  });
+
 
 // ================= AUTH EXTRA =================
 

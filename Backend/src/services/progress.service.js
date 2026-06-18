@@ -1,4 +1,3 @@
-// src/services/progress.service.js
 
 const Result = require("../models/result.model");
 

@@ -1,4 +1,3 @@
-// src/services/studyPlan.service.js
 
 const StudyPlan = require("../models/studyPlan.model");
 

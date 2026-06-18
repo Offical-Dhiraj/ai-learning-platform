@@ -9,58 +9,125 @@ const generateStudyPlan = async (req, res, next) => {
 
     duration = Number(duration);
 
-    if (duration < 7 || duration > 90) {
+    if (Number.isNaN(duration) || duration < 7 || duration > 90) {
       return res.status(400).json({
         success: false,
         message: "Duration must be between 7 and 90 days"
       });
     }
 
-    const latestResult = await Result.findOne({ user: userId })
-      .sort({ createdAt: -1 });
+    const latestResult = await Result.findOne({
+      user: userId
+    }).sort({ createdAt: -1 });
 
     if (!latestResult) {
-      return res.status(400).json({
+      return res.status(404).json({
         success: false,
         message: "No test result found"
       });
     }
 
-    if (!latestResult.weakTopics.length) {
+    if (
+      !latestResult.weakTopics ||
+      latestResult.weakTopics.length === 0
+    ) {
       return res.status(400).json({
         success: false,
-        message: "No weak topics found. You are performing well!"
+        message: "No weak topics found"
       });
     }
 
-    const sortedWeakTopics = latestResult.weakTopics
-      .sort((a, b) => b.incorrectCount - a.incorrectCount)
-      .map(t => t.topic);
+    // Extract weak topics
+    const weakTopics = latestResult.weakTopics.map(
+      topic => topic.topic
+    );
 
+    // Copy resources from latest result
+    const resources = latestResult.resources || [];
+
+    // Generate daily tasks
     const dailyTasks = [];
+    let currentDay = 1;
 
-    for (let day = 1; day <= duration; day++) {
-      const topic =
-        sortedWeakTopics[(day - 1) % sortedWeakTopics.length];
+    for (const topic of weakTopics) {
+      dailyTasks.push({
+        day: currentDay++,
+        topic,
+        task: `Learn ${topic} concepts`,
+        estimatedTime: "1 Hour",
+        completed: false
+      });
 
       dailyTasks.push({
-        day,
-        topics: [topic],
+        day: currentDay++,
+        topic,
+        task: `Solve 20 questions of ${topic}`,
+        estimatedTime: "1.5 Hours",
+        completed: false
+      });
+
+      dailyTasks.push({
+        day: currentDay++,
+        topic,
+        task: `${topic} revision and mock test`,
+        estimatedTime: "1 Hour",
         completed: false
       });
     }
 
-    await StudyPlan.findOneAndDelete({ user: userId });
+    // Fill remaining days
+    while (dailyTasks.length < duration) {
+      const topic =
+        weakTopics[dailyTasks.length % weakTopics.length];
 
+      dailyTasks.push({
+        day: currentDay++,
+        topic,
+        task: `Mixed practice for ${topic}`,
+        estimatedTime: "1 Hour",
+        completed: false
+      });
+    }
+
+    // Monthly roadmap
+    const monthlyPlan = [
+      {
+        week: 1,
+        goal: "Understand concepts"
+      },
+      {
+        week: 2,
+        goal: "Practice questions"
+      },
+      {
+        week: 3,
+        goal: "Mock tests"
+      },
+      {
+        week: 4,
+        goal: "Final revision"
+      }
+    ];
+
+    // Delete old study plan
+    await StudyPlan.findOneAndDelete({
+      user: userId
+    });
+
+
+
+    // Create new study plan
     const studyPlan = await StudyPlan.create({
       user: userId,
       exam: latestResult.exam,
       duration,
+      weakTopics,
       dailyTasks,
-      generatedAt: new Date()
+      monthlyPlan,
+      resources
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Study plan generated successfully",
       studyPlan

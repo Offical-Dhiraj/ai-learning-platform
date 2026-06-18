@@ -19,7 +19,7 @@ const answerSchema = new mongoose.Schema({
   selectedAnswer: {
     type: String,
     required: false,
-    default:null
+    default: null
   },
 
   correctAnswer: {
@@ -75,6 +75,18 @@ const resultSchema = new mongoose.Schema(
         incorrectCount: Number
       }
     ],
+    suggestions: {
+      type: String,
+      default: ""
+    },
+
+    resources: [
+      {
+        topic: String,
+        youtube: String,
+        article: String
+      }
+    ],
 
     submittedAt: {
       type: Date,
@@ -85,3 +97,5 @@ const resultSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Result", resultSchema);
+
+

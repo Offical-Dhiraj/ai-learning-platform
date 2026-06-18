@@ -6,6 +6,8 @@ import Dashboard from "../pages/auth/dashboard/Dashboard";
 import GenerateTest from "../pages/test/GenerateTest";
 import Test from "../pages/test/Test";
 import Results from "../pages/test/Result";
+import StudyPlan from "../pages/StudyPlan";
+
 
 
 export default function AppRoutes() {
@@ -18,6 +20,7 @@ export default function AppRoutes() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/generate-test" element={<GenerateTest />} />
                 <Route path="/results" element={<Results />} />
+                <Route path="/study-plan" element={<StudyPlan/> }/>
 
                 <Route path="/test" element={<Test />} />
             </Routes>
