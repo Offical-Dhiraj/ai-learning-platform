@@ -14,10 +14,10 @@ export default function Navbar() {
 
         {/* DESKTOP MENU */}
         <div className="hidden md:flex gap-6 items-center">
-          <Link to="/" className="hover:text-purple-400">Home</Link>
-          <Link to="/generate-test" className="hover:text-purple-400">Generate</Link>
-          <Link to="/dashboard" className="hover:text-purple-400">Dashboard</Link>
-          <Link to="/study-plan" className="hover:text-purple-400">Study Plan</Link>
+          <Link to="/" className="hover:text-purple-400 cursor-pointer">Home</Link>
+          <Link to="/generate-test" className="hover:text-purple-400 cursor-pointer">Generate</Link>
+          <Link to="/dashboard" className="hover:text-purple-400 cursor-pointer">Dashboard</Link>
+          <Link to="/study-plan" className="hover:text-purple-400 cursor-pointer">Study Plan</Link>
         </div>
 
 

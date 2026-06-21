@@ -9,7 +9,7 @@ export default function GuestHero() {
       <div className="max-w-7xl mx-auto px-6 text-center">
 
         <span className="px-4 py-2 rounded-full bg-blue-500/20 text-blue-400">
-          🚀 AI Powered Learning Platform
+          AI Powered Learning Platform
         </span>
 
         <h1 className="text-6xl md:text-7xl font-bold mt-8">
@@ -30,7 +30,7 @@ export default function GuestHero() {
             onClick={() =>
               navigate("/register")
             }
-            className="px-8 py-4 bg-blue-500 rounded-xl"
+            className="px-8 py-4 bg-blue-500 rounded-xl cursor-pointer"
           >
             Start Free
           </button>
@@ -39,7 +39,7 @@ export default function GuestHero() {
             onClick={() =>
               navigate("/login")
             }
-            className="px-8 py-4 border border-slate-600 rounded-xl"
+            className="px-8 py-4 border border-slate-600 rounded-xl cursor-pointer"
           >
             Login
           </button>

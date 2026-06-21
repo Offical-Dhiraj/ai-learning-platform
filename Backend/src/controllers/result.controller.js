@@ -108,19 +108,15 @@ const submitTest = async (req, res, next) => {
     // Learning Resources
     // ======================
 
-    const resources = weakTopics.map(
-      item => ({
-        topic: item.topic,
-
-        youtube:
-          resourcesMap[item.topic]?.youtube ||
-          "https://www.youtube.com",
-
-        article:
-          resourcesMap[item.topic]?.article ||
-          "https://www.google.com"
-      })
-    );
+    const resources = weakTopics.map(item => ({
+  topic: item.topic,
+  youtube:
+    resourcesMap[item.topic]?.youtube ||
+    `https://www.youtube.com/results?search_query=${encodeURIComponent(item.topic)}`,
+  article:
+    resourcesMap[item.topic]?.article ||
+    `https://www.google.com/search?q=${encodeURIComponent(item.topic + " tutorial notes")}`
+}));
 
     // ======================
     // Save Result
