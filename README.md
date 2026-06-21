@@ -4,15 +4,16 @@
 ![React](https://img.shields.io/badge/React-Frontend-blue)
 ![Node.js](https://img.shields.io/badge/Node.js-Backend-success)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Database-brightgreen)
+![AI Powered](https://img.shields.io/badge/AI-Powered-purple)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-An intelligent AI-powered learning platform that helps students prepare smarter through **AI-generated tests, weak topic analysis, personalized study plans, and performance tracking**.
+An intelligent AI-powered learning platform that helps students prepare smarter through **AI-generated tests, weak topic analysis, personalized study plans, AI chat assistance, and performance tracking**.
 
 ---
 
 ## 🌐 Live Demo
 
-### 👉 [Launch AI Learning Platform](https://ai-learning-platform-git-main-dhiraj-kumars-projects-e9bc6d24.vercel.app)
+### 👉 https://ai-learning-platform-git-main-dhiraj-kumars-projects-e9bc6d24.vercel.app
 
 ---
 
@@ -24,13 +25,25 @@ An intelligent AI-powered learning platform that helps students prepare smarter 
 * JWT Authentication
 * Password Reset Support
 * Protected Routes
+* Secure User Sessions
 
 ### 🧠 AI-Powered Learning
 
-* Dynamic MCQ Generation
-* AI-Based Topic Analysis
+* Dynamic AI Test Generation
+* AI-Based Weak Topic Analysis
 * Personalized Study Suggestions
 * AI-Generated Study Plans
+* Adaptive Learning Recommendations
+
+### 🤖 AI Learning Assistant (NEW)
+
+* Real-Time AI Chat Assistant
+* Placement Preparation Support
+* DSA, Java, React, DBMS, OS, CN Guidance
+* Aptitude & Reasoning Help
+* Personalized Learning Conversations
+* Chat History Storage
+* Floating AI Assistant Access From Any Learning Page
 
 ### 📊 Performance Analytics
 
@@ -38,25 +51,37 @@ An intelligent AI-powered learning platform that helps students prepare smarter 
 * Percentage Calculation
 * Weak Topic Detection
 * Strong Topic Identification
-* Progress Tracking Dashboard
+* Performance Insights
+* Learning Progress Dashboard
 
 ### 📚 Learning Support
 
 * Question Review System
 * Recommended Learning Resources
 * Personalized Learning Path
+* AI-Based Study Recommendations
+* Topic-Wise Improvement Tracking
+
+### 🎯 Test & Assessment System
+
+* AI Generated MCQ Tests
+* Multiple Difficulty Levels
+* Personalized Assessments
+* Instant Feedback
+* Smart Result Analysis
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer       | Technologies                                |
-| ----------- | ------------------------------------------- |
-| Frontend    | React.js, Tailwind CSS, Axios, React Router |
-| Backend     | Node.js, Express.js                         |
-| Database    | MongoDB Atlas, Mongoose                     |
-| AI Services | Groq API                                    |
-| Deployment  | Vercel, Render                              |
+| Layer          | Technologies                                |
+| -------------- | ------------------------------------------- |
+| Frontend       | React.js, Tailwind CSS, Axios, React Router |
+| Backend        | Node.js, Express.js                         |
+| Database       | MongoDB Atlas, Mongoose                     |
+| AI Services    | Groq API                                    |
+| Authentication | JWT                                         |
+| Deployment     | Vercel, Render                              |
 
 ---
 
@@ -70,123 +95,33 @@ An intelligent AI-powered learning platform that helps students prepare smarter 
 6. Weak and strong topics are identified.
 7. AI generates study suggestions.
 8. Personalized study plan is created.
-9. Dashboard tracks learning progress.
+9. User can interact with the AI Learning Assistant.
+10. Dashboard tracks learning progress and performance.
 
 ---
 
-## 📁 Project Structure
+## 🔥 New Features Added
 
-```text
-AI-Learning-Platform
-│
-├── Backend
-│   ├── src
-│   │   ├── config
-│   │   ├── controllers
-│   │   ├── middlewares
-│   │   ├── models
-│   │   ├── routes
-│   │   ├── services
-│   │   └── app.js
-│   │
-│   └── server.js
-│
-├── Frontend
-│   ├── public
-│   ├── src
-│   │   ├── components
-│   │   ├── pages
-│   │   ├── services
-│   │   ├── store
-│   │   └── app
-│   │
-│   └── vite.config.js
-│
-└── README.md
-```
+### 🤖 AI Chat Assistant
 
----
+* Ask doubts instantly
+* Get coding explanations
+* Interview preparation support
+* Placement guidance
+* Study plan recommendations
+* Topic-specific learning assistance
 
-## ⚙️ Installation
+### 💬 Chat History
 
-### Clone Repository
+* Stores previous conversations
+* Resume learning anytime
+* Personalized AI interaction experience
 
-```bash
-git clone https://github.com/Offical-Dhiraj/ai-learning-platform.git
+### 🚀 Floating AI Assistant
 
-cd ai-learning-platform
-```
-
-### Backend Setup
-
-```bash
-cd Backend
-
-npm install
-
-npm start
-```
-
-### Frontend Setup
-
-```bash
-cd Frontend
-
-npm install
-
-npm run dev
-```
-
----
-
-## 🔐 Environment Variables
-
-### Backend (.env)
-
-```env
-MONGO_URI=your_mongodb_connection_string
-
-JWT_SECRET=your_secret_key
-
-GROQ_API_KEY=your_groq_api_key
-
-EMAIL=your_email
-
-EMAIL_PASS=your_email_password
-```
-
-### Frontend (.env)
-
-```env
-VITE_API_URL=https://your-backend-url.onrender.com
-```
-
----
-
-## 🌍 Deployment
-
-| Service  | Platform      |
-| -------- | ------------- |
-| Frontend | Vercel        |
-| Backend  | Render        |
-| Database | MongoDB Atlas |
-
----
-
-## 📸 Screenshots
-
-Add screenshots of:
-
-* Home Page
-* Login Page
-* Dashboard
-* Test Page
-* Result Page
-* Study Plan Page
-
-```md
-![Dashboard](screenshots/dashboard.png)
-```
+* Available across authenticated pages
+* Quick access to AI support
+* Seamless learning experience
 
 ---
 
@@ -195,44 +130,9 @@ Add screenshots of:
 * 📧 Email Verification
 * 🔁 OTP Authentication
 * 🎓 AI Course Recommendation
-* 📊 Advanced Analytics
+* 📊 Advanced Analytics Dashboard
 * 🏆 Leaderboard System
-* 📱 Mobile App
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome.
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to GitHub
-5. Create a Pull Request
-
----
-
-## 👨‍💻 Author
-
-**Dhiraj Kumar**
-
-GitHub: https://github.com/Offical-Dhiraj
-
----
-
-## ⭐ Support
-
-If you found this project useful:
-
-⭐ Star the repository
-
-🍴 Fork the project
-
-📢 Share with others
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License.
+* 📱 Mobile Application
+* 🎙️ Voice-Based AI Assistant
+* 🌐 Multi-Language Support
+* 📄 AI Resume & Interview Preparation Module
