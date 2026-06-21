@@ -64,10 +64,7 @@ export default function Results() {
         <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center px-6">
           <div className="max-w-xl text-center">
 
-            <div className="flex items-center gap-3 mb-3">
-              <GraduationCap size={40} className="text-cyan-400" />
-            </div>
-
+            
 
 
 
