@@ -8,7 +8,7 @@ export default function App() {
   const token = localStorage.getItem("token");
 
   const showChat =
-    token && !["/login", "/register"].includes(location.pathname);
+    token && !["/login", "/register","/chat"].includes(location.pathname);
 
   return (
     <>

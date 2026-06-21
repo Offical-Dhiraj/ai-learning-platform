@@ -245,7 +245,7 @@ export default function Chat() {
 
         {/* INPUT SECTION */}
 
-        <div className="sticky bottom-0 bg-slate-950 border-t border-slate-800">
+        {/* <div className="sticky bottom-0 bg-slate-950 border-t border-slate-800">
           <div className="max-w-4xl mx-auto p-4">
             <div
               className="
@@ -292,6 +292,42 @@ export default function Chat() {
                 justify-center
                 transition
                 "
+              >
+                <Send size={18} />
+              </button>
+            </div>
+          </div>
+        </div> */}
+
+        <div className="fixed bottom-0 left-0 right-0 bg-slate-950 border-t border-slate-800 z-50">
+          <div className="max-w-4xl mx-auto p-3">
+            <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-2xl p-2">
+              <input
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    sendMessage();
+                  }
+                }}
+                placeholder="Ask anything..."
+                className="flex-1 bg-transparent outline-none px-3 text-white text-sm md:text-base"
+              />
+
+              <button
+                onClick={() => {
+                  sendMessage();
+                }}
+                disabled={loading}
+                className="
+  min-w-[48px]
+  min-h-[48px]
+  rounded-xl
+  bg-cyan-500
+  flex
+  items-center
+  justify-center
+  "
               >
                 <Send size={18} />
               </button>
