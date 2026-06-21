@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const { generateStudySuggestions } = require("../services/ai.service");
 const StudyPlan = require("../models/studyPlan.model");
 const resourcesMap = require("../data/resources");
+const Test = require("../models/test.model");
 
 
 const submitTest = async (req, res, next) => {
@@ -138,6 +139,18 @@ const submitTest = async (req, res, next) => {
       resources
     });
 
+
+    await Test.findOneAndDelete({
+      user: userId,
+      submitted: false
+    });
+
+    // MARK CURRENT TEST AS SUBMITTED
+   await Test.findOneAndDelete({
+  user: userId,
+  submitted: false
+});
+
     // ======================
     // Topic Names
     // ======================
@@ -246,6 +259,8 @@ const submitTest = async (req, res, next) => {
 
         dailyTasks,
 
+        resources,
+
         monthlyPlan: [
           {
             week: 1,
@@ -319,15 +334,15 @@ const submitTest = async (req, res, next) => {
 
 
 
+
+
 const getUserResults = async (req, res, next) => {
   try {
-    let results;
+    const userId = req.user.id;
 
-    if (req.user) {
-      results = await Result.find({ user: req.user.id }).sort({ createdAt: -1 });
-    } else {
-      results = await Result.find().sort({ createdAt: -1 });
-    }
+    const results = await Result.find({
+      user: userId
+    }).sort({ createdAt: -1 });
 
     res.json({
       success: true,
@@ -339,7 +354,6 @@ const getUserResults = async (req, res, next) => {
     next(error);
   }
 };
-
 
 const getResultById = async (req, res, next) => {
   try {
@@ -377,6 +391,9 @@ const getResultById = async (req, res, next) => {
     next(error);
   }
 };
+
+
+
 
 
 const getDashboardStats = async (req, res, next) => {
@@ -433,6 +450,6 @@ const getDashboardStats = async (req, res, next) => {
 module.exports = {
   submitTest,
   getUserResults,
-  getResultById,
+  getUserResults,
   getDashboardStats
 };

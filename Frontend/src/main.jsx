@@ -3,10 +3,21 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./app/App";
 import "./index.css";
+import { Toaster } from "react-hot-toast";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <>
   <App />
+  <Toaster
+  position="top-center"
+  toastOptions={{
+    style: {
+      background: "#0f172a",
+      color: "#fff",
+      border: "1px solid #22c55e",
+    },
+  }}
+/>
   <ToastContainer position="top-right"/>
   </>
 );

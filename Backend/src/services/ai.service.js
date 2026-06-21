@@ -121,7 +121,7 @@ const getFallbackQuestions = (count = 5) => {
 //  MAIN FUNCTION
 const generateQuestions = async (exam, difficulty, totalQuestions) => {
   try {
-    const chunkSize = 5;
+    const chunkSize = 25;
     let promises = [];
 
     for (let i = 0; i < totalQuestions; i += chunkSize) {

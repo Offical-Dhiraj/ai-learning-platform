@@ -22,6 +22,8 @@ const resourceSchema = new mongoose.Schema(
     strongSubjects: [String],
     timeTaken: Number,
   },
+
+  
   { timestamps: true },
 );
 

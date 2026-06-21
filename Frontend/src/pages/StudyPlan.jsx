@@ -3,17 +3,19 @@ import {
   getStudyPlanAPI,
   markDayCompletedAPI
 } from "@/features/auth/auth.api";
-
 import Navbar from "../components/Navbar";
+import Confetti from "react-confetti";
+import { toast } from "react-hot-toast";
+
 
 export default function StudyPlan() {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const fetchPlan = async () => {
     try {
       const res = await getStudyPlanAPI();
-
       setPlan(res.data.studyPlan);
     } catch (error) {
       console.log(error);
@@ -28,14 +30,28 @@ export default function StudyPlan() {
   }, []);
 
   const markCompleted = async (day) => {
-    try {
-      await markDayCompletedAPI(day);
+  try {
+    await markDayCompletedAPI(day);
 
-      fetchPlan();
-    } catch (error) {
-      console.log(error);
-    }
-  };
+    setShowConfetti(true);
+
+    toast.success(
+      "🎉 Great Job! Task Completed Successfully!",
+      {
+        duration: 4000,
+      }
+    );
+
+    setTimeout(() => {
+      setShowConfetti(false);
+    }, 4000);
+
+    fetchPlan();
+
+  } catch (error) {
+    console.log(error);
+  }
+};
 
   const dailyTasks = Array.isArray(plan?.dailyTasks)
     ? plan.dailyTasks
@@ -55,244 +71,402 @@ export default function StudyPlan() {
 
   const progress =
     dailyTasks.length > 0
-      ? (
-          completedTasks /
-          dailyTasks.length
-        ) * 100
+      ? (completedTasks / dailyTasks.length) * 100
       : 0;
+
+  // =====================
+  // LOADING
+  // =====================
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+
+          <div className="text-center text-white">
+
+            <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+
+            <h2 className="text-xl font-semibold">
+              Loading Study Plan...
+            </h2>
+
+          </div>
+
+        </div>
+      </>
+    );
+  }
+
+  // =====================
+  // NO PLAN
+  // =====================
+
+  if (!plan) {
+    return (
+      <>
+        <Navbar />
+
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center px-6">
+
+          <div className="text-center text-white">
+
+            <h1 className="text-4xl font-bold mb-4">
+              No Study Plan Found
+            </h1>
+
+            <p className="text-gray-400">
+              Complete a test and generate a study plan first.
+            </p>
+
+          </div>
+
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
       <Navbar />
 
-      {/* Loading */}
-      {loading ? (
-        <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white">
-          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+      {showConfetti && (
+        <Confetti
+          recycle={false}
+          numberOfPieces={250}
+        />
+      )}
 
-          <h2 className="text-xl font-semibold">
-            Loading Study Plan...
-          </h2>
-        </div>
-      ) : !plan ? (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white pt-24 pb-12 px-4">
 
-        /* No Plan */
-        <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white text-center px-6">
-          <h1 className="text-4xl font-bold mb-4">
-            📚 No Study Plan Found
-          </h1>
+        <div className="max-w-7xl mx-auto">
 
-          <p className="text-gray-400">
-            Complete a test and generate a study
-            plan first.
-          </p>
-        </div>
+          {/* HEADER */}
 
-      ) : (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 mb-8">
 
-        /* Main Page */
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white p-6">
+            <h1 className="text-4xl md:text-5xl font-bold mb-3">
+              Personalized Study Plan
+            </h1>
 
-          <div className="max-w-7xl mx-auto">
+            <p className="text-gray-400 text-lg">
+              AI-generated roadmap based on your performance and weak topics.
+            </p>
 
-            {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-5xl font-bold mb-2">
-                🧠 AI Study Plan
-              </h1>
+          </div>
+
+          {/* STATS */}
+
+          <div className="grid md:grid-cols-3 gap-5 mb-8">
+
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
 
               <p className="text-gray-400">
-                Personalized roadmap generated
-                from your weak topics.
+                Progress
               </p>
+
+              <h2 className="text-4xl font-bold text-cyan-400 mt-2">
+                {progress.toFixed(0)}%
+              </h2>
+
             </div>
 
-            {/* Progress */}
-            <div className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl mb-8">
-              <div className="flex justify-between mb-3">
-                <h2 className="text-xl font-semibold">
-                  Progress
-                </h2>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
 
-                <span className="font-bold text-green-400">
-                  {progress.toFixed(0)}%
-                </span>
-              </div>
-
-              <div className="w-full bg-gray-700 rounded-full h-4">
-                <div
-                  className="bg-gradient-to-r from-green-400 to-green-600 h-4 rounded-full"
-                  style={{
-                    width: `${progress}%`
-                  }}
-                />
-              </div>
-
-              <p className="mt-3 text-gray-300">
-                {completedTasks} / {dailyTasks.length}
-                Days Completed
+              <p className="text-gray-400">
+                Completed
               </p>
-            </div>
 
-            {/* Weak Topics */}
-            <div className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl mb-8">
-              <h2 className="text-2xl font-bold mb-4">
-                Weak Topics
+              <h2 className="text-4xl font-bold text-green-400 mt-2">
+                {completedTasks}
               </h2>
 
-              <div className="flex flex-wrap gap-3">
-                {weakTopics.map((topic, index) => (
-                  <span
-                    key={index}
-                    className="px-4 py-2 bg-red-500/20 border border-red-400 rounded-full text-red-300"
-                  >
-                    {topic}
-                  </span>
-                ))}
-              </div>
             </div>
 
-            {/* Monthly Goals */}
-            <div className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl mb-8">
-              <h2 className="text-2xl font-bold mb-4">
-                Monthly Goals
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
+
+              <p className="text-gray-400">
+                Remaining
+              </p>
+
+              <h2 className="text-4xl font-bold text-orange-400 mt-2">
+                {dailyTasks.length - completedTasks}
               </h2>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                {monthlyPlan.map((item, index) => (
-                  <div
-                    key={index}
-                    className="bg-purple-500/10 border border-purple-400 p-4 rounded-xl"
-                  >
-                    <h3 className="font-bold text-purple-300">
-                      Week {item.week}
-                    </h3>
-
-                    <p className="mt-2">
-                      {item.goal}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-
-           
-
-{/* Resources */}
-<div className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl mb-8">
-  <h2 className="text-2xl font-bold mb-4">
-    📚 Recommended Resources
-  </h2>
-
-  {plan.resources?.length > 0 ? (
-    <div className="grid md:grid-cols-2 gap-4">
-      {plan.resources.map((resource, index) => (
-        <div
-          key={index}
-          className="bg-slate-800 p-4 rounded-xl"
-        >
-          <h3 className="text-lg font-bold text-purple-400 mb-2">
-            {resource.topic}
-          </h3>
-
-          <a
-            href={resource.youtube}
-            target="_blank"
-            rel="noreferrer"
-            className="block text-blue-400 hover:underline mb-2"
-          >
-            📺 Watch Video
-          </a>
-
-          <a
-            href={resource.article}
-            target="_blank"
-            rel="noreferrer"
-            className="block text-green-400 hover:underline"
-          >
-            📘 Study Notes
-          </a>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <p className="text-gray-400">
-      No resources available.
-    </p>
-  )}
-</div>
-
-
-            {/* Daily Tasks */}
-            <div>
-              <h2 className="text-3xl font-bold mb-6">
-                Daily Study Tasks
-              </h2>
-
-              <div className="grid lg:grid-cols-2 gap-5">
-
-                {dailyTasks.map(task => (
-                  <div
-                    key={task.day}
-                    className="bg-white/10 backdrop-blur-lg p-5 rounded-2xl border border-white/10 hover:border-purple-500 transition"
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="text-xl font-bold">
-                        Day {task.day}
-                      </h3>
-
-                      {task.completed ? (
-                        <span className="bg-green-500 px-3 py-1 rounded-full text-sm">
-                          Completed
-                        </span>
-                      ) : (
-                        <span className="bg-yellow-500 px-3 py-1 rounded-full text-sm">
-                          Pending
-                        </span>
-                      )}
-                    </div>
-
-                    <p className="mb-2">
-                      <span className="font-semibold text-purple-300">
-                        Topic:
-                      </span>{" "}
-                      {task.topic}
-                    </p>
-
-                    <p className="mb-2">
-                      <span className="font-semibold text-blue-300">
-                        Task:
-                      </span>{" "}
-                      {task.task}
-                    </p>
-
-                    <p className="mb-4">
-                      <span className="font-semibold text-green-300">
-                        Duration:
-                      </span>{" "}
-                      {task.estimatedTime}
-                    </p>
-
-                    {!task.completed && (
-                      <button
-                        onClick={() =>
-                          markCompleted(task.day)
-                        }
-                        className="w-full bg-green-500 hover:bg-green-600 py-2 rounded-lg font-semibold transition"
-                      >
-                        Mark Complete
-                      </button>
-                    )}
-                  </div>
-                ))}
-
-              </div>
             </div>
 
           </div>
+
+          {/* PROGRESS BAR */}
+
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 backdrop-blur-xl">
+
+            <div className="flex justify-between mb-3">
+
+              <span>
+                Overall Progress
+              </span>
+
+              <span className="font-bold text-cyan-400">
+                {progress.toFixed(0)}%
+              </span>
+
+            </div>
+
+            <div className="w-full bg-slate-700 rounded-full h-4 overflow-hidden">
+
+              <div
+                className="bg-gradient-to-r from-cyan-500 via-blue-500 to-emerald-500 h-4 rounded-full transition-all duration-1000"
+                style={{
+                  width: `${progress}%`
+                }}
+              />
+
+            </div>
+
+          </div>
+
+          {/* WEAK TOPICS */}
+
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-8 backdrop-blur-xl">
+
+            <h2 className="text-2xl font-bold mb-5">
+              Focus Areas
+            </h2>
+
+            <div className="flex flex-wrap gap-3">
+
+              {weakTopics.map((topic, index) => (
+
+                <span
+                  key={index}
+                  className="px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 text-red-300"
+                >
+                  {topic}
+                </span>
+
+              ))}
+
+            </div>
+
+          </div>
+
+          {/* MONTHLY GOALS */}
+
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-8 backdrop-blur-xl">
+
+            <h2 className="text-2xl font-bold mb-5">
+              Monthly Goals
+            </h2>
+
+            <div className="grid md:grid-cols-2 gap-4">
+
+              {monthlyPlan.map((item, index) => (
+
+                <div
+                  key={index}
+                  className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-5"
+                >
+
+                  <h3 className="font-bold text-cyan-300">
+                    Week {item.week}
+                  </h3>
+
+                  <p className="mt-2">
+                    {item.goal}
+                  </p>
+
+                </div>
+
+              ))}
+
+            </div>
+
+          </div>
+
+
+          {/* RESOURCES */}
+
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-8 backdrop-blur-xl">
+
+            <h2 className="text-2xl font-bold mb-5">
+              Recommended Resources
+            </h2>
+
+            {Array.isArray(plan?.resources) &&
+              plan.resources.length > 0 ? (
+
+              <div className="grid md:grid-cols-2 gap-5">
+
+                {plan.resources.map((resource, index) => (
+
+                  <div
+                    key={index}
+                    className="bg-slate-900/50 backdrop-blur-xl border border-cyan-500/10 hover:border-cyan-500/30 hover:scale-[1.02] transition-all duration-300 p-6 rounded-2xl"                  >
+
+                    <h3 className="text-xl font-bold text-white mb-4">
+                      {resource.topic}
+                    </h3>
+
+                    <div className="flex flex-col gap-3">
+
+                      <a
+                        href={resource.youtube}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-sky-600 hover:bg-sky-500 text-white px-4 py-3 rounded-xl text-center font-semibold transition-all duration-300 hover:scale-[1.02]"                      >
+                        📺 Watch Tutorial
+                      </a>
+
+                      <a
+                        href={resource.article}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-3 rounded-xl text-center font-semibold transition-all duration-300 hover:scale-[1.02]"                      >
+                        📘 Study Notes
+                      </a>
+
+                    </div>
+
+                  </div>
+
+                ))}
+
+              </div>
+
+            ) : (
+
+              <div className="bg-slate-800 rounded-xl p-6 text-center">
+
+                <p className="text-gray-400 text-lg">
+                  No learning resources available.
+                </p>
+
+                <p className="text-sm text-gray-500 mt-2">
+                  Generate a new study plan to get topic-wise resources.
+                </p>
+
+              </div>
+
+            )}
+
+          </div>
+
+          {/* DAILY TASKS */}
+
+          <div>
+
+            <h2 className="text-3xl font-bold mb-6">
+              Daily Learning Journey
+            </h2>
+
+            <div className="space-y-5">
+
+              {dailyTasks.map(task => (
+
+                <div
+                  key={task.day}
+                  className={`border rounded-3xl p-6 transition-all duration-300
+                  ${task.completed
+                      ? "bg-green-500/5 border-green-500/20"
+                      : "bg-white/5 border-white/10 hover:border-cyan-500/30"
+                    }`}
+                >
+
+                  <div className="flex flex-col md:flex-row md:justify-between gap-4">
+
+                    <div>
+
+                      <h3 className="text-2xl font-bold mb-3">
+                        Day {task.day}
+                      </h3>
+
+                      <p className="mb-2">
+
+                        <span className="text-cyan-400 font-semibold">
+                          Topic:
+                        </span>{" "}
+
+                        {task.topic}
+
+                      </p>
+
+                      <p className="mb-2">
+
+                        <span className="text-blue-400 font-semibold">
+                          Task:
+                        </span>{" "}
+
+                        {task.task}
+
+                      </p>
+
+                      <p>
+
+                        <span className="text-emerald-400 font-semibold">
+                          Duration:
+                        </span>{" "}
+
+                        {task.estimatedTime}
+
+                      </p>
+
+                    </div>
+
+                    <div className="flex flex-col items-start md:items-end gap-3">
+
+                      {task.completed ? (
+
+                        <span className="bg-green-500/20 text-green-400 px-4 py-2 rounded-full font-semibold">
+                          ✓ Completed
+                        </span>
+
+                      ) : (
+
+                        <>
+                          <span className="bg-yellow-500/20 text-yellow-300 px-4 py-2 rounded-full font-semibold">
+                            Pending
+                          </span>
+
+                          <button
+                            onClick={() =>
+                              markCompleted(task.day)
+                            }
+                            className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:scale-105 px-6 py-3 rounded-xl font-semibold transition-all duration-300"
+                          >
+                            Complete Task
+                          </button>
+                        </>
+
+                      )}
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              ))}
+
+            </div>
+
+          </div>
+
         </div>
-      )}
+      </div>
     </>
   );
 }
+
+
+
+
+
+
+
+
+
+
+

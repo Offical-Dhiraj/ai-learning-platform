@@ -1,113 +1,221 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { generateTestAPI } from "../../features/auth/auth.api";
 import { toast } from "react-toastify";
 import { useTestStore } from "../../store/testStore";
-import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 
-
-
 export default function GenerateTest() {
-    const navigate = useNavigate();
 
-    const [form, setForm] = useState({
-        exam: "placement",
-        difficulty: "easy",
-    });
+  const navigate = useNavigate();
 
-    const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    exam: "placement",
+    difficulty: "easy",
+  });
 
-    const { testActive, startTest } = useTestStore();
-    const handleGenerate = async () => {
-        console.log(form.exam);
+  const [loading, setLoading] = useState(false);
 
-        try {
-            if (testActive) {
-                alert("⚠️ Finish current test first!");
-                return;
-            }
+  const { startTest } = useTestStore();
 
-            setLoading(true);
+  const handleGenerate = async () => {
+    try {
 
-            const res = await generateTestAPI(form);
+      setLoading(true);
 
-            startTest(res.data.questions); // store in Zustand
+      const res = await generateTestAPI(form);
 
-            navigate("/test"); 
+      const test = res.data.test;
 
-        } catch (err) {
-            console.log(err);
-            alert("Failed to generate test");
-        } finally {
-            setLoading(false);
-        }
-    };
-    const handleSelect = (qIndex, option) => {
-        setAnswers({ ...answers, [qIndex]: option });
-    };
+      startTest(test.questions);
 
-    const handleSubmit = () => {
-        console.log("User Answers:", answers);
-        toast.success("Test Submitted successful")
-    };
-    return (
-        <>
-        <Navbar/>
-        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#0f172a] to-[#1e293b] p-6 text-white">
+      navigate("/test");
 
-            <div className="w-full max-w-3xl">
+    } catch (err) {
 
-                {/* HEADER */}
-                <h1 className="text-3xl font-bold mb-6 text-center">
-                    AI Test Generator
-                </h1>
+      if (
+        err?.response?.data?.message ===
+        "You already have an active test. Complete it first."
+      ) {
+        navigate("/test");
+        return;
+      }
 
-                {/* FORM */}
-                <div className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl shadow-xl border border-white/20">
+      console.log(err);
 
-                    {/* Exam */}
-                    <label className="text-sm mb-1 block">Select Exam</label>
-                    <select
-                        className="w-full p-3 rounded-lg bg-white/20 border border-white/30 mb-4"
-                        value={form.exam}
-                        onChange={(e) =>
-                            setForm({ ...form, exam: e.target.value })
-                        }
-                    >
-                        <option className="bg-gray-400 text-shadow-white" value="placement">Placement</option>
-                        <option className="bg-gray-400 text-shadow-white" value="neet">NEET</option>
-                        <option className="bg-gray-400 text-shadow-white" value="jee">IIT JEE</option>
-                    </select>
+      toast.error("Failed to generate test");
 
-                    {/* Difficulty */}
-                    <label className="text-sm mb-1 block">Difficulty</label>
-                    <select
-                        className="w-full p-3 rounded-lg bg-white/20 border border-white/30 mb-4"
-                        value={form.difficulty}
-                        onChange={(e) =>
-                            setForm({ ...form, difficulty: e.target.value })
-                        }
-                    >
-                        <option className="bg-gray-400 text-shadow-white" value="easy">Easy</option>
-                        <option className="bg-gray-400 text-shadow-white" value="medium">Medium</option>
-                        <option className="bg-gray-400 text-shadow-white" value="hard">Hard</option>
-                    </select>
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                    {/* BUTTON */}
-                    <button
-                        onClick={handleGenerate}
-                        className="w-full py-3 rounded-lg bg-linear-to-r from-purple-500 to-pink-500 hover:scale-105 transition font-semibold"
-                    >
-                        {loading ? "Generating..." : "✨ Generate Test"}
-                    </button>
-                </div>
+  return (
+    <>
+      <Navbar />
+
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white pt-24 px-4">
+
+        <div className="max-w-5xl mx-auto">
+
+          {/* HERO */}
+
+          <div className="bg-gradient-to-r from-cyan-600/20 to-blue-600/20 border border-cyan-500/10 rounded-3xl p-8 mb-8 backdrop-blur-xl">
+
+            <h1 className="text-4xl md:text-5xl font-bold mb-3">
+              AI Test Generator
+            </h1>
+
+            <p className="text-gray-400 text-lg">
+              Generate personalized AI-powered tests based on your selected exam and difficulty level.
+            </p>
+
+          </div>
+
+          {/* MAIN CARD */}
+
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl">
+
+            <h2 className="text-2xl font-bold mb-6">
+              Test Configuration
+            </h2>
 
 
+
+                        {/* EXAM */}
+
+            <label className="block mb-2 text-gray-300">
+              Select Exam
+            </label>
+
+            <select
+              className="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 focus:border-cyan-500 outline-none mb-6"
+              value={form.exam}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  exam: e.target.value,
+                })
+              }
+            >
+              <option value="placement">
+                Placement
+              </option>
+
+              <option value="neet">
+                NEET
+              </option>
+
+              <option value="jee">
+                IIT JEE
+              </option>
+
+            </select>
+
+            {/* DIFFICULTY */}
+
+            <label className="block mb-2 text-gray-300">
+              Difficulty Level
+            </label>
+
+            <select
+              className="w-full p-4 rounded-xl bg-slate-800 border border-slate-700 focus:border-cyan-500 outline-none mb-8"
+              value={form.difficulty}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  difficulty: e.target.value,
+                })
+              }
+            >
+              <option value="easy">
+                Easy
+              </option>
+
+              <option value="medium">
+                Medium
+              </option>
+
+              <option value="hard">
+                Hard
+              </option>
+
+            </select>
+
+            {/* INFO CARDS */}
+
+            <div className="grid md:grid-cols-3 gap-4 mb-8">
+
+              <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-2xl p-5">
+
+                <h3 className="font-semibold text-cyan-400 mb-2">
+                  Smart Questions
+                </h3>
+
+                <p className="text-sm text-gray-400">
+                  AI generates unique questions every time.
+                </p>
+
+              </div>
+
+              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-5">
+
+                <h3 className="font-semibold text-emerald-400 mb-2">
+                  Instant Analysis
+                </h3>
+
+                <p className="text-sm text-gray-400">
+                  Get score, weak topics and suggestions.
+                </p>
+
+              </div>
+
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-5">
+
+                <h3 className="font-semibold text-blue-400 mb-2">
+                  Study Plan
+                </h3>
+
+                <p className="text-sm text-gray-400">
+                  Personalized roadmap after every test.
+                </p>
+
+              </div>
 
             </div>
+
+            {/* BUTTON */}
+
+            <button
+              onClick={handleGenerate}
+              disabled={loading}
+              className="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:scale-[1.02] transition-all duration-300 font-semibold text-lg disabled:opacity-60"
+            >
+
+              {loading ? (
+
+                <div className="flex items-center justify-center gap-3">
+
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+
+                  Generating Test...
+
+                </div>
+
+              ) : (
+
+                "Generate Test"
+
+              )}
+
+            </button>
+
+          </div>
+
         </div>
 
-</>
-    );
+      </div>
 
+    </>
+  );
 }

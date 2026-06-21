@@ -1,235 +1,250 @@
 const StudyPlan = require("../models/studyPlan.model");
 const Result = require("../models/result.model");
 
+// =========================
+// Generate Study Plan
+// =========================
 
 const generateStudyPlan = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
-    let { duration = 30 } = req.body;
+try {
+const userId = req.user.id;
+let { duration = 30 } = req.body;
 
-    duration = Number(duration);
 
-    if (Number.isNaN(duration) || duration < 7 || duration > 90) {
-      return res.status(400).json({
-        success: false,
-        message: "Duration must be between 7 and 90 days"
-      });
-    }
+duration = Number(duration);
 
-    const latestResult = await Result.findOne({
-      user: userId
-    }).sort({ createdAt: -1 });
+if (Number.isNaN(duration) || duration < 7 || duration > 90) {
+  return res.status(400).json({
+    success: false,
+    message: "Duration must be between 7 and 90 days"
+  });
+}
 
-    if (!latestResult) {
-      return res.status(404).json({
-        success: false,
-        message: "No test result found"
-      });
-    }
+const latestResult = await Result.findOne({
+  user: userId
+}).sort({ createdAt: -1 });
 
-    if (
-      !latestResult.weakTopics ||
-      latestResult.weakTopics.length === 0
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "No weak topics found"
-      });
-    }
+if (!latestResult) {
+  return res.status(404).json({
+    success: false,
+    message: "No test result found"
+  });
+}
 
-    // Extract weak topics
-    const weakTopics = latestResult.weakTopics.map(
-      topic => topic.topic
-    );
+const weakTopics =
+  latestResult.weakTopics?.map(
+    item => item.topic
+  ) || [];
 
-    // Copy resources from latest result
-    const resources = latestResult.resources || [];
+if (weakTopics.length === 0) {
+  return res.status(400).json({
+    success: false,
+    message: "No weak topics found"
+  });
+}
 
-    // Generate daily tasks
-    const dailyTasks = [];
-    let currentDay = 1;
+// Copy resources from latest result
+const resources = latestResult.resources || [];
 
-    for (const topic of weakTopics) {
-      dailyTasks.push({
-        day: currentDay++,
-        topic,
-        task: `Learn ${topic} concepts`,
-        estimatedTime: "1 Hour",
-        completed: false
-      });
+const dailyTasks = [];
+let day = 1;
 
-      dailyTasks.push({
-        day: currentDay++,
-        topic,
-        task: `Solve 20 questions of ${topic}`,
-        estimatedTime: "1.5 Hours",
-        completed: false
-      });
+weakTopics.forEach(topic => {
+  dailyTasks.push({
+    day: day++,
+    topic,
+    task: `Learn ${topic} concepts`,
+    estimatedTime: "1 Hour",
+    completed: false
+  });
 
-      dailyTasks.push({
-        day: currentDay++,
-        topic,
-        task: `${topic} revision and mock test`,
-        estimatedTime: "1 Hour",
-        completed: false
-      });
-    }
+  dailyTasks.push({
+    day: day++,
+    topic,
+    task: `Practice ${topic} questions`,
+    estimatedTime: "1.5 Hours",
+    completed: false
+  });
 
-    // Fill remaining days
-    while (dailyTasks.length < duration) {
-      const topic =
-        weakTopics[dailyTasks.length % weakTopics.length];
+  dailyTasks.push({
+    day: day++,
+    topic,
+    task: `${topic} revision`,
+    estimatedTime: "1 Hour",
+    completed: false
+  });
+});
 
-      dailyTasks.push({
-        day: currentDay++,
-        topic,
-        task: `Mixed practice for ${topic}`,
-        estimatedTime: "1 Hour",
-        completed: false
-      });
-    }
-
-    // Monthly roadmap
-    const monthlyPlan = [
-      {
-        week: 1,
-        goal: "Understand concepts"
-      },
-      {
-        week: 2,
-        goal: "Practice questions"
-      },
-      {
-        week: 3,
-        goal: "Mock tests"
-      },
-      {
-        week: 4,
-        goal: "Final revision"
-      }
+while (dailyTasks.length < duration) {
+  const topic =
+    weakTopics[
+      dailyTasks.length %
+      weakTopics.length
     ];
 
-    // Delete old study plan
-    await StudyPlan.findOneAndDelete({
-      user: userId
-    });
+  dailyTasks.push({
+    day: day++,
+    topic,
+    task: `Mixed Practice - ${topic}`,
+    estimatedTime: "1 Hour",
+    completed: false
+  });
+}
 
-
-
-    // Create new study plan
-    const studyPlan = await StudyPlan.create({
-      user: userId,
-      exam: latestResult.exam,
-      duration,
-      weakTopics,
-      dailyTasks,
-      monthlyPlan,
-      resources
-    });
-
-    return res.status(201).json({
-      success: true,
-      message: "Study plan generated successfully",
-      studyPlan
-    });
-
-  } catch (error) {
-    next(error);
+const monthlyPlan = [
+  {
+    week: 1,
+    goal: "Understand Weak Concepts"
+  },
+  {
+    week: 2,
+    goal: "Practice Questions"
+  },
+  {
+    week: 3,
+    goal: "Mock Tests"
+  },
+  {
+    week: 4,
+    goal: "Final Revision"
   }
+];
+
+await StudyPlan.deleteMany({
+  user: userId
+});
+
+const studyPlan = await StudyPlan.create({
+  user: userId,
+  exam: latestResult.exam,
+  duration,
+  weakTopics,
+  dailyTasks,
+  monthlyPlan,
+  resources
+});
+
+return res.status(201).json({
+  success: true,
+  message: "Study plan generated successfully",
+  studyPlan
+});
+
+
+} catch (error) {
+console.log("Generate Study Plan Error:", error);
+next(error);
+}
 };
 
+// =========================
+// Get My Study Plan
+// =========================
 
 const getMyStudyPlan = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
+try {
+const plan = await StudyPlan.findOne({
+user: req.user.id
+});
 
-    const plan = await StudyPlan.findOne({ user: userId });
 
-    if (!plan) {
-      return res.status(404).json({
-        success: false,
-        message: "No study plan found"
-      });
-    }
+if (!plan) {
+  return res.status(404).json({
+    success: false,
+    message: "No study plan found"
+  });
+}
 
-    res.json({
-      success: true,
-      studyPlan: plan
-    });
+res.status(200).json({
+  success: true,
+  studyPlan: plan
+});
 
-  } catch (error) {
-    next(error);
-  }
+
+} catch (error) {
+next(error);
+}
 };
 
-
-
+// =========================
+// Mark Day Completed
+// =========================
 
 const markDayCompleted = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
-    const { day } = req.body;
+try {
+const userId = req.user.id;
+const { day } = req.body;
 
-    if (!day || typeof day !== "number") {
-      return res.status(400).json({
-        success: false,
-        message: "Valid day number required"
-      });
-    }
 
-    const plan = await StudyPlan.findOne({ user: userId });
+if (!day) {
+  return res.status(400).json({
+    success: false,
+    message: "Day is required"
+  });
+}
 
-    if (!plan) {
-      return res.status(404).json({
-        success: false,
-        message: "Study plan not found"
-      });
-    }
+const plan = await StudyPlan.findOne({
+  user: userId
+});
 
-    const task = plan.dailyTasks.find(t => t.day === day);
+if (!plan) {
+  return res.status(404).json({
+    success: false,
+    message: "Study plan not found"
+  });
+}
 
-    if (!task) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid day"
-      });
-    }
+const task = plan.dailyTasks.find(
+  item => item.day === day
+);
 
-    task.completed = true;
+if (!task) {
+  return res.status(404).json({
+    success: false,
+    message: "Task not found"
+  });
+}
 
-    await plan.save();
+task.completed = true;
 
-    res.json({
-      success: true,
-      message: `Day ${day} marked as completed`
-    });
+await plan.save();
 
-  } catch (error) {
-    next(error);
-  }
+res.status(200).json({
+  success: true,
+  message: `Day ${day} marked completed`
+});
+
+
+} catch (error) {
+next(error);
+}
 };
 
-
+// =========================
+// Delete Study Plan
+// =========================
 
 const deleteStudyPlan = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
+try {
+await StudyPlan.findOneAndDelete({
+user: req.user.id
+});
 
-    await StudyPlan.findOneAndDelete({ user: userId });
 
-    res.json({
-      success: true,
-      message: "Study plan deleted successfully"
-    });
+res.status(200).json({
+  success: true,
+  message: "Study plan deleted successfully"
+});
 
-  } catch (error) {
-    next(error);
-  }
+
+} catch (error) {
+next(error);
+}
 };
 
 module.exports = {
-  generateStudyPlan,
-  getMyStudyPlan,
-  markDayCompleted,
-  deleteStudyPlan
+generateStudyPlan,
+getMyStudyPlan,
+markDayCompleted,
+deleteStudyPlan
 };
