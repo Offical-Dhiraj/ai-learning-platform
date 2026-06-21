@@ -6,5 +6,7 @@ router.use("/test", require("./test.routes"));
 router.use("/results", require("./result.routes"));
 router.use("/studyplan", require("./studyPlan.routes"));
 router.use("/progress", require("./progress.routes"));
+router.use("/chat", require("./chat.routes"));
+
 
 module.exports = router;

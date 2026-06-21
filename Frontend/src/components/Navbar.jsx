@@ -10,8 +10,12 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
 
         {/* LOGO */}
-        <h1 className="text-xl font-bold">AI Test</h1>
-
+        <div
+          onClick={() => navigate("/")}
+          className="text-2xl font-bold cursor-pointer"
+        >
+          Edu<span className="text-cyan-400">AI</span>
+        </div>
         {/* DESKTOP MENU */}
         <div className="hidden md:flex gap-6 items-center">
           <Link to="/" className="hover:text-purple-400 cursor-pointer">Home</Link>
