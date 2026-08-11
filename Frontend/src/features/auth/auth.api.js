@@ -45,10 +45,13 @@ export const markDayCompletedAPI = (day) =>
 export const forgotPasswordAPI = (data) =>
   API.post("/auth/forgot-password", data);
 
-// Send OTP
+// Reset Password
+export const resetPasswordAPI = (token, data) =>
+  API.post(`/auth/reset-password/${token}`, data);
+
+// OTP
 export const sendOTPAPI = (data) =>
   API.post("/auth/send-otp", data);
 
-// Verify OTP
 export const verifyOTPAPI = (data) =>
   API.post("/auth/verify-otp", data);

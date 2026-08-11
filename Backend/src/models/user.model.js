@@ -21,11 +21,13 @@ const userSchema = new mongoose.Schema(
     },
 
     resetPasswordToken: {
-      type: String
+      type: String,
+      default: null,
     },
 
-    resetPasswordExpires: {
-      type: Date
+    resetPasswordExpire: {
+      type: Date,
+      default: null,
     },
 
     testsTaken: { type: Number, default: 0 },
@@ -33,7 +35,7 @@ const userSchema = new mongoose.Schema(
     studyTime: { type: String, default: "0h" },
     topics: { type: Number, default: 0 },
     activities: [{ type: String }],
-    suggestions:String,
+    suggestions: String,
 
     targetExam: {
       type: String,

@@ -7,6 +7,7 @@ import Test from "../pages/test/Test";
 import Results from "../pages/test/Result";
 import StudyPlan from "../pages/StudyPlan";
 import Chat from "../pages/Chat";
+import ResetPassword from "../pages/auth/ResetPassword";
 
 import { Routes, Route } from "react-router-dom";
 
@@ -16,6 +17,7 @@ export default function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/generate-test" element={<GenerateTest />} />
       <Route path="/results" element={<Results />} />
