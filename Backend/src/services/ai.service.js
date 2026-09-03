@@ -1,285 +1,1080 @@
+
 const Groq = require("groq-sdk");
 
 const client = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
+  apiKey: process.env.GROQ_API_KEY
 });
 
-//  CLEAN JSON FUNCTION
+// =====================================================
+// CLEAN JSON
+// =====================================================
+
 const cleanJSON = (text) => {
   try {
     if (!text) return null;
 
-    // remove markdown
-    let cleaned = text.replace(/```json|```/g, "").trim();
+    let cleaned = text
+      .replace(/```json/gi, "")
+      .replace(/```/g, "")
+      .trim();
 
-    // extract JSON safely
     const match = cleaned.match(/\{[\s\S]*\}/);
-    if (!match) return null;
+
+    if (!match) {
+      return null;
+    }
 
     cleaned = match[0];
 
-    // remove trailing commas
     cleaned = cleaned.replace(/,\s*}/g, "}");
     cleaned = cleaned.replace(/,\s*]/g, "]");
 
     return JSON.parse(cleaned);
-  } catch (err) {
-    console.log("JSON CLEAN ERROR:", err.message);
+
+  } catch (error) {
+    console.log(
+      "JSON CLEAN ERROR:",
+      error.message
+    );
+
     return null;
   }
 };
 
-//  PROMPT BUILDER
-// const buildPrompt = (exam, difficulty, count) => {
-//   return `
-// You are an expert ${exam} exam question generator.
+// =====================================================
+// NORMALIZE EXAM
+// =====================================================
 
-// Generate ${count} COMPLETELY NEW and UNIQUE MCQ questions.
+const normalizeExam = (exam) => {
+  const value = String(exam || "")
+    .trim()
+    .toLowerCase();
 
-// Exam: ${exam}
-// Difficulty: ${difficulty}
+  if (
+    value === "placement" ||
+    value === "placements"
+  ) {
+    return "placement";
+  }
 
-// STRICT INSTRUCTIONS:
+  if (value === "neet") {
+    return "neet";
+  }
 
-// 1. Questions MUST be ONLY from ${exam} syllabus.
-// 2. If exam = JEE → ONLY Physics, Chemistry, Mathematics
-// 3. If exam = NEET → ONLY Biology, Physics, Chemistry
-// 4. If exam = PLACEMENT → ONLY Aptitude, Reasoning, Verbal, Coding
+  if (
+    value === "jee" ||
+    value === "iit jee" ||
+    value === "iIT jee".toLowerCase()
+  ) {
+    return "jee";
+  }
 
-// 5. DO NOT generate generic questions like:
-//    - 2+2
-//    - basic synonyms
-//    - common puzzles
+  return value;
+};
 
-// 6. Each question must be DIFFERENT from previous generations.
+// =====================================================
+// PROMPT BUILDER
+// =====================================================
 
-// 7. Make questions slightly advanced and realistic.
+const buildPrompt = (
+  exam,
+  difficulty,
+  count,
+  startIndex = 0
+) => {
 
-// Return ONLY JSON:
-// {
-//   "questions": [
-//     {
-//       "questionText": "string",
-//       "topic": "string",
-//       "options": ["A","B","C","D"],
-//       "correctAnswer": "string"
-//     }
-//   ]
-// }
+  const normalizedExam = normalizeExam(exam);
 
-// CRITICAL:
-// - No explanation
-// - No markdown
-// - No extra text
-// - ONLY JSON
-// `;
-// };
+  // ===================================================
+  // PLACEMENT
+  // ===================================================
 
-const buildPrompt = (exam, difficulty, count) => {
-  return `
-You are an expert ${exam} exam question generator.
+  if (normalizedExam === "placement") {
 
-Generate exactly ${count} MCQ questions.
+    return `
+You are an expert placement examination question generator.
 
-Exam: ${exam}
+Generate exactly ${count} completely new and unique MCQ questions.
+
+Exam: PLACEMENT
 Difficulty: ${difficulty}
 
-FOR PLACEMENT EXAM FOLLOW THIS ORDER:
+IMPORTANT QUESTION SEQUENCE:
 
-1-8   -> Aptitude
-9-15  -> Reasoning
-16-22 -> Verbal
-23-${count} -> Coding
+Questions must follow this order:
+
+1. Aptitude
+2. Reasoning
+3. Verbal
+4. Coding
+
+For a 30-question test:
+
+Questions 1-8:
+APTITUDE
+
+Questions 9-15:
+REASONING
+
+Questions 16-22:
+VERBAL
+
+Questions 23-30:
+CODING
 
 APTITUDE TOPICS:
-Percentage, Profit & Loss, Ratio, Average,
-Time & Work, Data Interpretation
+- Percentage
+- Profit and Loss
+- Ratio and Proportion
+- Average
+- Time and Work
+- Time Speed Distance
+- Data Interpretation
+- Simple and Compound Interest
 
 REASONING TOPICS:
-Number Series, Blood Relation,
-Direction Sense, Seating Arrangement,
-Logical Deduction
+- Number Series
+- Logical Deduction
+- Blood Relations
+- Direction Sense
+- Seating Arrangement
+- Coding-Decoding
+- Syllogism
 
 VERBAL TOPICS:
-Synonyms, Antonyms,
-Sentence Correction,
-Reading Comprehension,
-Vocabulary
+- Synonyms
+- Antonyms
+- Vocabulary
+- Sentence Correction
+- Grammar
+- Reading Comprehension
 
 CODING TOPICS:
-Arrays, Strings,
-Java, OOPs,
-Data Structures,
-Output Based Questions
+- Arrays
+- Strings
+- OOP
+- Java
+- Python
+- Data Structures
+- Algorithms
+- Programming Output
 
-RULES:
+STRICT RULES:
 
-1. Every question must have exactly 4 options.
-2. topic must be specific.
-3. No duplicate questions.
-4. No explanation.
-5. Return ONLY JSON.
-6. correctAnswer MUST be the FULL option text.
-7. NEVER return A/B/C/D as correctAnswer.
+1. Generate ONLY placement questions.
+2. Do NOT generate NEET questions.
+3. Do NOT generate JEE questions.
+4. Every question must have exactly 4 options.
+5. Every question must have a specific topic.
+6. correctAnswer MUST contain the exact FULL option text.
+7. Never return A, B, C or D as correctAnswer.
+8. No duplicate questions.
+9. No explanations.
+10. Return ONLY valid JSON.
 
-Correct Example:
+Example:
 
 {
-  "questionText":"What is 5 + 5?",
-  "topic":"Percentage",
-  "options":["8","9","10","11"],
-  "correctAnswer":"10"
+  "questions": [
+    {
+      "questionText": "A train travels 120 km in 2 hours. What is its average speed?",
+      "topic": "Time Speed Distance",
+      "options": [
+        "40 km/h",
+        "50 km/h",
+        "60 km/h",
+        "80 km/h"
+      ],
+      "correctAnswer": "60 km/h"
+    }
+  ]
 }
 
-Return ONLY:
+Return ONLY JSON.
+`;
+  }
+
+  // ===================================================
+  // NEET
+  // ===================================================
+
+  if (normalizedExam === "neet") {
+
+    return `
+You are an expert NEET examination question generator.
+
+Generate exactly ${count} completely new and unique MCQ questions.
+
+Exam: NEET
+Difficulty: ${difficulty}
+
+IMPORTANT:
+
+These questions MUST be strictly related to the NEET syllabus.
+
+Allowed subjects ONLY:
+
+BIOLOGY:
+- Cell Biology
+- Genetics
+- Human Physiology
+- Plant Physiology
+- Ecology
+- Evolution
+- Human Reproduction
+- Reproductive Health
+- Biotechnology
+- Diversity of Living Organisms
+
+PHYSICS:
+- Mechanics
+- Thermodynamics
+- Current Electricity
+- Electrostatics
+- Optics
+- Modern Physics
+- Electromagnetism
+- Oscillations and Waves
+
+CHEMISTRY:
+- Organic Chemistry
+- Inorganic Chemistry
+- Physical Chemistry
+- Chemical Bonding
+- Thermodynamics
+- Equilibrium
+- Electrochemistry
+- Coordination Compounds
+
+STRICT RULES:
+
+1. Generate ONLY NEET questions.
+2. Do NOT generate placement questions.
+3. Do NOT generate aptitude questions.
+4. Do NOT generate reasoning questions.
+5. Do NOT generate verbal questions.
+6. Do NOT generate coding questions.
+7. Every question must have exactly 4 options.
+8. Every question must have a specific NEET topic.
+9. correctAnswer MUST contain the exact FULL option text.
+10. Never return A, B, C or D as correctAnswer.
+11. Questions should be realistic NEET-style MCQs.
+12. No duplicate questions.
+13. No explanation.
+14. Return ONLY valid JSON.
+
+Example:
 
 {
-  "questions":[]
+  "questions": [
+    {
+      "questionText": "Which organelle is known as the powerhouse of the cell?",
+      "topic": "Cell Biology",
+      "options": [
+        "Nucleus",
+        "Ribosome",
+        "Mitochondria",
+        "Golgi Apparatus"
+      ],
+      "correctAnswer": "Mitochondria"
+    }
+  ]
+}
+
+Return ONLY JSON.
+`;
+  }
+
+  // ===================================================
+  // JEE
+  // ===================================================
+
+  if (normalizedExam === "jee") {
+
+    return `
+You are an expert IIT JEE examination question generator.
+
+Generate exactly ${count} completely new and unique MCQ questions.
+
+Exam: JEE
+Difficulty: ${difficulty}
+
+Allowed subjects ONLY:
+
+PHYSICS:
+- Mechanics
+- Kinematics
+- Laws of Motion
+- Work Energy Power
+- Rotational Motion
+- Thermodynamics
+- Electrostatics
+- Current Electricity
+- Magnetism
+- Electromagnetic Induction
+- Optics
+- Modern Physics
+- Waves
+
+CHEMISTRY:
+- Physical Chemistry
+- Organic Chemistry
+- Inorganic Chemistry
+- Chemical Bonding
+- Thermodynamics
+- Equilibrium
+- Electrochemistry
+- Coordination Chemistry
+- Hydrocarbons
+
+MATHEMATICS:
+- Algebra
+- Calculus
+- Coordinate Geometry
+- Trigonometry
+- Probability
+- Statistics
+- Matrices
+- Determinants
+- Vectors
+- 3D Geometry
+
+STRICT RULES:
+
+1. Generate ONLY JEE questions.
+2. Do NOT generate NEET questions.
+3. Do NOT generate placement questions.
+4. Do NOT generate aptitude questions.
+5. Do NOT generate reasoning questions.
+6. Do NOT generate verbal questions.
+7. Do NOT generate coding questions.
+8. Every question must have exactly 4 options.
+9. Every question must have a specific JEE topic.
+10. correctAnswer MUST contain the exact FULL option text.
+11. Never return A, B, C or D as correctAnswer.
+12. Questions should be realistic JEE-style questions.
+13. No duplicate questions.
+14. No explanation.
+15. Return ONLY valid JSON.
+
+Example:
+
+{
+  "questions": [
+    {
+      "questionText": "If the velocity of a particle is doubled, how does its kinetic energy change?",
+      "topic": "Work Energy Power",
+      "options": [
+        "Becomes half",
+        "Remains same",
+        "Becomes four times",
+        "Becomes two times"
+      ],
+      "correctAnswer": "Becomes four times"
+    }
+  ]
+}
+
+Return ONLY JSON.
+`;
+  }
+
+  // ===================================================
+  // DEFAULT
+  // ===================================================
+
+  return `
+Generate ${count} MCQ questions for ${exam}.
+
+Difficulty: ${difficulty}
+
+Every question must have:
+- questionText
+- topic
+- exactly 4 options
+- correctAnswer
+
+correctAnswer MUST be the exact option text.
+
+Return ONLY JSON:
+
+{
+  "questions": []
 }
 `;
 };
 
-//  FALLBACK QUESTIONS
-const getFallbackQuestions = (count = 5) => {
-  const base = [
-    {
-      questionText: "What is 2 + 2?",
-      topic: "Aptitude",
-      options: ["1", "2", "3", "4"],
-      correctAnswer: "4",
-    },
-    {
-      questionText: "Which is a programming language?",
-      topic: "Coding",
-      options: ["HTML", "Python", "CSS", "HTTP"],
-      correctAnswer: "Python",
-    },
-    {
-      questionText: "Choose synonym of Happy",
-      topic: "Verbal",
-      options: ["Sad", "Joyful", "Angry", "Weak"],
-      correctAnswer: "Joyful",
-    },
-    {
-      questionText: "Find next: 2, 4, 8, ?",
-      topic: "Reasoning",
-      options: ["10", "12", "16", "18"],
-      correctAnswer: "16",
-    },
-  ];
+// =====================================================
+// FALLBACK QUESTIONS
+// =====================================================
 
-  let result = [];
+const getFallbackQuestions = (
+  exam,
+  count = 5
+) => {
+
+  const normalizedExam = normalizeExam(exam);
+
+  let base = [];
+
+  // ===================================================
+  // PLACEMENT FALLBACK
+  // ===================================================
+
+  if (normalizedExam === "placement") {
+
+    base = [
+
+      {
+        questionText:
+          "A product costs ₹800 and is sold for ₹960. What is the profit percentage?",
+
+        topic:
+          "Profit and Loss",
+
+        options: [
+          "15%",
+          "20%",
+          "25%",
+          "30%"
+        ],
+
+        correctAnswer:
+          "20%"
+      },
+
+      {
+        questionText:
+          "Find the next number: 3, 6, 12, 24, ?",
+
+        topic:
+          "Number Series",
+
+        options: [
+          "36",
+          "42",
+          "48",
+          "54"
+        ],
+
+        correctAnswer:
+          "48"
+      },
+
+      {
+        questionText:
+          "Choose the synonym of 'Abundant'.",
+
+        topic:
+          "Vocabulary",
+
+        options: [
+          "Scarce",
+          "Plentiful",
+          "Weak",
+          "Limited"
+        ],
+
+        correctAnswer:
+          "Plentiful"
+      },
+
+      {
+        questionText:
+          "Which data structure follows the LIFO principle?",
+
+        topic:
+          "Data Structures",
+
+        options: [
+          "Queue",
+          "Stack",
+          "Linked List",
+          "Tree"
+        ],
+
+        correctAnswer:
+          "Stack"
+      }
+    ];
+  }
+
+  // ===================================================
+  // NEET FALLBACK
+  // ===================================================
+
+  else if (normalizedExam === "neet") {
+
+    base = [
+
+      {
+        questionText:
+          "Which organelle is known as the powerhouse of the cell?",
+
+        topic:
+          "Cell Biology",
+
+        options: [
+          "Nucleus",
+          "Ribosome",
+          "Mitochondria",
+          "Golgi Apparatus"
+        ],
+
+        correctAnswer:
+          "Mitochondria"
+      },
+
+      {
+        questionText:
+          "Which molecule carries genetic information in most organisms?",
+
+        topic:
+          "Genetics",
+
+        options: [
+          "Protein",
+          "DNA",
+          "Lipid",
+          "Glucose"
+        ],
+
+        correctAnswer:
+          "DNA"
+      },
+
+      {
+        questionText:
+          "Which hormone regulates blood glucose level?",
+
+        topic:
+          "Human Physiology",
+
+        options: [
+          "Insulin",
+          "Thyroxine",
+          "Adrenaline",
+          "Estrogen"
+        ],
+
+        correctAnswer:
+          "Insulin"
+      },
+
+      {
+        questionText:
+          "The SI unit of electric current is:",
+
+        topic:
+          "Current Electricity",
+
+        options: [
+          "Volt",
+          "Ohm",
+          "Ampere",
+          "Watt"
+        ],
+
+        correctAnswer:
+          "Ampere"
+      }
+    ];
+  }
+
+  // ===================================================
+  // JEE FALLBACK
+  // ===================================================
+
+  else if (normalizedExam === "jee") {
+
+    base = [
+
+      {
+        questionText:
+          "If the velocity of a body is doubled, its kinetic energy becomes:",
+
+        topic:
+          "Work Energy Power",
+
+        options: [
+          "Half",
+          "Double",
+          "Four times",
+          "Unchanged"
+        ],
+
+        correctAnswer:
+          "Four times"
+      },
+
+      {
+        questionText:
+          "The derivative of x² with respect to x is:",
+
+        topic:
+          "Calculus",
+
+        options: [
+          "x",
+          "2x",
+          "x²",
+          "2"
+        ],
+
+        correctAnswer:
+          "2x"
+      },
+
+      {
+        questionText:
+          "The atomic number represents the number of:",
+
+        topic:
+          "Inorganic Chemistry",
+
+        options: [
+          "Neutrons",
+          "Electrons only",
+          "Protons",
+          "Nucleons"
+        ],
+
+        correctAnswer:
+          "Protons"
+      },
+
+      {
+        questionText:
+          "Which particle has a negative charge?",
+
+        topic:
+          "Modern Physics",
+
+        options: [
+          "Proton",
+          "Neutron",
+          "Electron",
+          "Photon"
+        ],
+
+        correctAnswer:
+          "Electron"
+      }
+    ];
+  }
+
+  else {
+
+    base = [
+      {
+        questionText:
+          "What is 10 + 20?",
+
+        topic:
+          "General",
+
+        options: [
+          "20",
+          "30",
+          "40",
+          "50"
+        ],
+
+        correctAnswer:
+          "30"
+      }
+    ];
+  }
+
+  const result = [];
 
   for (let i = 0; i < count; i++) {
-    const baseQ = base[i % base.length];
+
+    const question =
+      base[i % base.length];
 
     result.push({
-      ...baseQ,
-      questionText: `${baseQ.questionText} [Fallback-${Date.now()}-${i}]`,
+      ...question,
+
+      questionText:
+        `${question.questionText} [Fallback-${Date.now()}-${i}]`
     });
   }
 
   return result;
 };
 
-//  MAIN FUNCTION
-const generateQuestions = async (exam, difficulty, totalQuestions) => {
-  try {
-    const chunkSize = 25;
-    let promises = [];
+// =====================================================
+// FIX QUESTION
+// =====================================================
 
-    for (let i = 0; i < totalQuestions; i += chunkSize) {
-      const currentChunk = Math.min(chunkSize, totalQuestions - i);
+const normalizeQuestion = (question) => {
+
+  if (
+    !question ||
+    !question.questionText ||
+    !Array.isArray(question.options) ||
+    question.options.length !== 4
+  ) {
+    return null;
+  }
+
+  let correctAnswer =
+    String(
+      question.correctAnswer || ""
+    ).trim();
+
+  // Convert A/B/C/D to actual option
+  const answerMap = {
+    A: question.options[0],
+    B: question.options[1],
+    C: question.options[2],
+    D: question.options[3]
+  };
+
+  const upperAnswer =
+    correctAnswer.toUpperCase();
+
+  if (answerMap[upperAnswer]) {
+    correctAnswer =
+      answerMap[upperAnswer];
+  }
+
+  // Try matching answer text with option
+  const matchedOption =
+    question.options.find(
+      option =>
+        String(option)
+          .trim()
+          .toLowerCase() ===
+        correctAnswer
+          .trim()
+          .toLowerCase()
+    );
+
+  if (matchedOption) {
+    correctAnswer = matchedOption;
+  }
+
+  if (!correctAnswer) {
+    return null;
+  }
+
+  return {
+    questionText:
+      String(question.questionText).trim(),
+
+    topic:
+      String(
+        question.topic || "General"
+      ).trim(),
+
+    options:
+      question.options.map(
+        option => String(option).trim()
+      ),
+
+    correctAnswer
+  };
+};
+
+// =====================================================
+// GENERATE QUESTIONS
+// =====================================================
+
+const generateQuestions = async (
+  exam,
+  difficulty,
+  totalQuestions
+) => {
+
+  const normalizedExam =
+    normalizeExam(exam);
+
+  totalQuestions =
+    Number(totalQuestions);
+
+  if (
+    !Number.isInteger(totalQuestions) ||
+    totalQuestions <= 0
+  ) {
+    totalQuestions = 20;
+  }
+
+  console.log(
+    "================================="
+  );
+
+  console.log(
+    "GENERATING TEST"
+  );
+
+  console.log(
+    "Exam:",
+    normalizedExam
+  );
+
+  console.log(
+    "Difficulty:",
+    difficulty
+  );
+
+  console.log(
+    "Questions:",
+    totalQuestions
+  );
+
+  console.log(
+    "================================="
+  );
+
+  try {
+
+    /*
+      Smaller chunks reduce invalid JSON
+      and reduce token pressure.
+    */
+
+    const chunkSize = 10;
+
+    const allQuestions = [];
+
+    for (
+      let i = 0;
+      i < totalQuestions;
+      i += chunkSize
+    ) {
+
+      const currentChunk =
+        Math.min(
+          chunkSize,
+          totalQuestions - i
+        );
 
       const prompt =
-        buildPrompt(exam, difficulty, currentChunk) +
-        `\nID: ${Date.now()}-${Math.random()}`;
+        buildPrompt(
+          normalizedExam,
+          difficulty,
+          currentChunk,
+          i
+        ) +
+        `
 
-      promises.push(
-        client.chat.completions.create({
-          model: "openai/gpt-oss-safeguard-20b",
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.8,
-        }),
-      );
-    }
+This is question batch starting at question ${i + 1}.
 
-    const responses = await Promise.all(promises);
+UNIQUE_REQUEST_ID:
+${Date.now()}-${Math.random()}
+`;
 
-    let allQuestions = [];
+      try {
 
-    for (let res of responses) {
-      const text = res?.choices?.[0]?.message?.content;
+        const response =
+          await client.chat.completions.create({
 
-      const parsed = cleanJSON(text);
+            model:
+              "openai/gpt-oss-safeguard-20b",
 
-      if (parsed?.questions && Array.isArray(parsed.questions)) {
-        for (let q of parsed.questions) {
-          if (
-            !q.questionText ||
-            !Array.isArray(q.options) ||
-            q.options.length !== 4
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are an expert examination question generator. Return ONLY valid JSON."
+              },
+              {
+                role: "user",
+                content: prompt
+              }
+            ],
+
+            temperature: 0.7
+          });
+
+        const text =
+          response
+            ?.choices?.[0]
+            ?.message
+            ?.content;
+
+        console.log(
+          `AI batch ${i + 1}:`,
+          text
+            ? "Response received"
+            : "Empty response"
+        );
+
+        const parsed =
+          cleanJSON(text);
+
+        if (
+          parsed &&
+          Array.isArray(
+            parsed.questions
+          )
+        ) {
+
+          for (
+            const rawQuestion
+            of parsed.questions
           ) {
-            continue;
+
+            const question =
+              normalizeQuestion(
+                rawQuestion
+              );
+
+            if (question) {
+              allQuestions.push(
+                question
+              );
+            }
           }
 
-          if (["A", "B", "C", "D"].includes(String(q.correctAnswer).trim())) {
-            const map = {
-              A: q.options[0],
-              B: q.options[1],
-              C: q.options[2],
-              D: q.options[3],
-            };
+        } else {
 
-            q.correctAnswer = map[String(q.correctAnswer).trim()];
-          }
-
-          allQuestions.push(q);
+          console.log(
+            "Invalid AI JSON response"
+          );
         }
-      } else {
-        console.log("⚠️ Invalid AI response → using fallback");
+
+      } catch (error) {
+
+        console.log(
+          `AI Batch ${i + 1} Error:`,
+          error.message
+        );
       }
     }
 
-    //  REMOVE DUPLICATES
-    const seen = new Set();
-    const uniqueQuestions = [];
+    // =================================================
+    // REMOVE DUPLICATES
+    // =================================================
 
-    for (let q of allQuestions) {
-      if (q?.questionText && !seen.has(q.questionText)) {
-        seen.add(q.questionText);
-        uniqueQuestions.push(q);
+    const seen =
+      new Set();
+
+    const uniqueQuestions =
+      [];
+
+    for (
+      const question
+      of allQuestions
+    ) {
+
+      const key =
+        question.questionText
+          .trim()
+          .toLowerCase();
+
+      if (!seen.has(key)) {
+
+        seen.add(key);
+
+        uniqueQuestions.push(
+          question
+        );
       }
     }
 
-    //  FILL REMAINING
-    if (uniqueQuestions.length < totalQuestions) {
-      const remaining = totalQuestions - uniqueQuestions.length;
-      uniqueQuestions.push(...getFallbackQuestions(remaining));
+    // =================================================
+    // IMPORTANT:
+    // For NEET/JEE never use placement fallback
+    // =================================================
+
+    if (
+      uniqueQuestions.length <
+      totalQuestions
+    ) {
+
+      const remaining =
+        totalQuestions -
+        uniqueQuestions.length;
+
+      console.log(
+        `Using ${remaining} ${normalizedExam} fallback questions`
+      );
+
+      const fallback =
+        getFallbackQuestions(
+          normalizedExam,
+          remaining
+        );
+
+      for (
+        const question
+        of fallback
+      ) {
+
+        const key =
+          question.questionText
+            .trim()
+            .toLowerCase();
+
+        if (!seen.has(key)) {
+
+          seen.add(key);
+
+          uniqueQuestions.push(
+            question
+          );
+        }
+      }
     }
 
-    return uniqueQuestions.slice(0, totalQuestions);
+    return uniqueQuestions.slice(
+      0,
+      totalQuestions
+    );
+
   } catch (error) {
-    console.log(" FINAL ERROR:", error.message);
-    return getFallbackQuestions(totalQuestions);
+
+    console.log(
+      "FINAL QUESTION ERROR:",
+      error.message
+    );
+
+    return getFallbackQuestions(
+      normalizedExam,
+      totalQuestions
+    );
   }
 };
 
-const generateStudySuggestions = async (weakTopics) => {
+// =====================================================
+// STUDY SUGGESTIONS
+// =====================================================
+
+const generateStudySuggestions = async (
+  weakTopics
+) => {
+
   try {
-    // ✅ 1. Handle empty weak topics (no change, just improved message)
-    if (!weakTopics || weakTopics.length === 0) {
-      return "Great job! No weak topics found.\n• Keep practicing\n• Try higher difficulty questions";
+
+    if (
+      !weakTopics ||
+      weakTopics.length === 0
+    ) {
+
+      return (
+        "Great job! No weak topics found.\n" +
+        "• Keep practicing\n" +
+        "• Try higher difficulty questions"
+      );
     }
 
-    const topics = weakTopics.map((t) => t.topic).join(", ");
+    const topics =
+      weakTopics
+        .map(
+          topic => topic.topic
+        )
+        .join(", ");
 
     const prompt = `
 You are an AI tutor.
 
-Weak topics: ${topics}
+Weak topics:
+${topics}
 
-Give short, practical improvement tips in bullet points.
+Give short practical improvement tips.
 
 Rules:
 - Only bullet points
@@ -287,48 +1082,94 @@ Rules:
 - No extra text
 `;
 
-    const response = await client.chat.completions.create({
-      model: "openai/gpt-oss-safeguard-20b",
-      // model: "llama-3.3-70b-versatile",
+    const response =
+      await client.chat.completions.create({
 
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-    });
+        model:
+          "openai/gpt-oss-safeguard-20b",
 
-    // ✅ 2. SAFE ACCESS (main fix)
-    const output = response?.choices?.[0]?.message?.content;
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
 
-    // ✅ 3. HANDLE EMPTY AI RESPONSE (main fix)
-    if (!output || output.trim() === "") {
-      return "• Revise concepts daily\n• Practice MCQs\n• Focus on weak areas";
+        temperature: 0.7
+      });
+
+    const output =
+      response
+        ?.choices?.[0]
+        ?.message
+        ?.content;
+
+    if (
+      !output ||
+      output.trim() === ""
+    ) {
+
+      return (
+        "• Revise concepts daily\n" +
+        "• Practice MCQs\n" +
+        "• Focus on weak areas"
+      );
     }
 
-    // ✅ 4. CLEAN OUTPUT (extra improvement)
-    const cleaned = output
+    return output
       .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line !== "")
+      .map(
+        line => line.trim()
+      )
+      .filter(
+        line => line !== ""
+      )
       .join("\n");
 
-    return cleaned;
   } catch (error) {
-    console.log("AI Suggestion Error:", error.message);
 
-    // ✅ 5. STRONG FALLBACK (important)
-    return "• Revise basics\n• Practice daily\n• Focus on weak topics";
+    console.log(
+      "AI Suggestion Error:",
+      error.message
+    );
+
+    return (
+      "• Revise basics\n" +
+      "• Practice daily\n" +
+      "• Focus on weak topics"
+    );
   }
 };
 
-const generateAIStudyPlan = async (weakTopics, duration) => {
+// =====================================================
+// AI STUDY PLAN
+// =====================================================
+
+const generateAIStudyPlan = async (
+  weakTopics,
+  duration
+) => {
+
   try {
-    const topics = weakTopics.map((t) => t.topic).join(", ");
+
+    if (
+      !weakTopics ||
+      weakTopics.length === 0
+    ) {
+      return null;
+    }
+
+    const topics =
+      weakTopics
+        .map(
+          topic => topic.topic
+        )
+        .join(", ");
 
     const prompt = `
-      
-
 You are an expert AI tutor.
 
-Generate a ${duration} day study plan.
+Generate a ${duration} day personalized study plan.
 
 Weak Topics:
 ${topics}
@@ -336,49 +1177,68 @@ ${topics}
 Return ONLY JSON.
 
 {
-"dailyTasks":[
-{
-"day":1,
-"topic":"Percentage",
-"task":"Solve 20 Percentage Questions",
-"estimatedTime":"1 Hour"
+  "dailyTasks": [
+    {
+      "day": 1,
+      "topic": "Topic Name",
+      "task": "Practice topic",
+      "estimatedTime": "1 Hour"
+    }
+  ],
+  "monthlyPlan": [
+    {
+      "week": 1,
+      "goal": "Master weak topics"
+    }
+  ]
 }
-],
 
-"monthlyPlan":[
-{
-"week":1,
-"goal":"Master Percentage"
-}
-]
-}
+No explanation.
+No markdown.
+ONLY JSON.
 `;
 
-    const response = await client.chat.completions.create({
-      model: "openai/gpt-oss-safeguard-20b",
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      temperature: 0.7,
-    });
+    const response =
+      await client.chat.completions.create({
 
-    const text = response?.choices?.[0]?.message?.content;
+        model:
+          "openai/gpt-oss-safeguard-20b",
 
-    const parsed = cleanJSON(text);
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
 
-    return parsed;
+        temperature: 0.7
+      });
+
+    const text =
+      response
+        ?.choices?.[0]
+        ?.message
+        ?.content;
+
+    return cleanJSON(text);
+
   } catch (error) {
-    console.log("AI Study Plan Error:", error.message);
+
+    console.log(
+      "AI Study Plan Error:",
+      error.message
+    );
 
     return null;
   }
 };
 
+// =====================================================
+// EXPORT
+// =====================================================
+
 module.exports = {
   generateQuestions,
   generateStudySuggestions,
-  generateAIStudyPlan,
+  generateAIStudyPlan
 };
